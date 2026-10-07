@@ -10,7 +10,7 @@ if (!fs.existsSync(DATA_DIR)) {
 
 let DB_PATH = path.join(DATA_DIR, 'memory.db');
 const PUBLIC_DIR = path.join(__dirname, 'public');
-const PORT = process.env.PORT || 37788;
+const PORT = process.env.NYAN_MEM_PORT || 37788;
 
 let db = new DatabaseSync(DB_PATH);
 
@@ -211,7 +211,10 @@ function sendJson(res, data, status = 200) {
 }
 
 const server = http.createServer(async (req, res) => {
-  const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  await handleDashboardRequest(req, res, new URL(req.url, `http://${req.headers.host || 'localhost'}`));
+});
+
+async function handleDashboardRequest(req, res, url) {
   const pathname = url.pathname;
 
   // CORS preflight
@@ -704,24 +707,35 @@ const server = http.createServer(async (req, res) => {
 
   res.writeHead(404, { 'Content-Type': 'text/plain' });
   res.end('Not Found');
-});
+}
 
-function startServer(port = PORT) {
-  server.listen(port, '127.0.0.1', () => {
-    process.stderr.write(`[nyan-mem-web] Dashboard live at http://localhost:${port}\n`);
+function startServer(port = PORT, mcpHandler = null) {
+  return new Promise((resolve, reject) => {
+    const onRequest = async (req, res) => {
+      const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+      try {
+        if (mcpHandler && await mcpHandler(req, res, url)) return;
+        await handleDashboardRequest(req, res, url);
+      } catch {
+        if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+        if (!res.writableEnded) res.end('Internal Server Error');
+      }
+    };
+    const server = http.createServer(onRequest);
+    server.once('error', reject);
+    server.listen(port, '127.0.0.1', () => {
+      server.removeListener('error', reject);
+      process.stderr.write(`[nyan-mem-web] Dashboard live at http://127.0.0.1:${server.address().port}\n`);
+      resolve(server);
+    });
   });
-  server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      process.stderr.write(`[nyan-mem-web] Port ${port} is already in use, skipping web server bind.\n`);
-    } else {
-      process.stderr.write(`[nyan-mem-web] Server error: ${err.message}\n`);
-    }
-  });
-  return server;
 }
 
 if (require.main === module) {
-  startServer(PORT);
+  startServer(PORT).catch(err => {
+    process.stderr.write(`[nyan-mem-web] Failed to bind dashboard: ${err.message}\n`);
+    process.exitCode = 1;
+  });
 }
 
 module.exports = { startServer, getActiveProject, setActiveProject, cleanProject, getSetting, setSetting };

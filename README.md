@@ -2,74 +2,71 @@
 
 > **Lightweight, Zero-API-Cost, Anti-Slop Project-Scoped Memory Engine & MCP Server**
 
-`nyan-mem` adalah pengganti mandiri untuk memory observer agent (seperti `claude-mem`) yang berjalan 100% lokal di atas Node.js native SQLite (`node:sqlite`) dengan FTS5 Full-Text Search. Dilengkapi dengan dual-perspective distillation (AI/Engineer vs Layman/Human), Project Scoping terisolasi, CLI instan, dan Web App Dashboard responsif (Dark/Light mode).
+`nyan-mem` is a local project-scoped memory engine and dashboard built on Node.js native SQLite/FTS5.
 
----
+## Features
 
-## ✨ Fitur Utama
+- Dual-perspective technical and layman summaries.
+- Project-scoped memories and work state, plus shared `global` context.
+- SQLite FTS5 full-text search.
+- Local dashboard at `http://127.0.0.1:37788/`.
+- MCP over stdio for legacy/single-client use, and Streamable HTTP for a shared local server.
+- CLI: `node cli.cjs`.
 
-- 🧠 **Dual-Perspective Distillation**:
-  - `technical_summary`: Ditujukan untuk AI & Software Engineer (faktual, dingin, tanpa kata bombastis / anti-slop).
-  - `layman_summary`: Ditujukan untuk manusia non-teknis dalam Bahasa Indonesia yang santai dan mudah dimengerti.
-- 📁 **Project Scoping & Workspace Awareness**:
-  - Catatan dan Work State / To-Do diisolasi per proyek (misal `ibt-laravel`, `sap-b1`) dengan fallback `global`.
-  - Simpan workspace path lokal dan custom LLM model override per proyek.
-- 🔍 **FTS5 BM25 Full-Text Search**:
-  - Pencarian memori secepat kilat dengan SQLite virtual table FTS5 bawaan Node.js 24.
-- 🖥️ **Web Dashboard (`http://localhost:37788`)**:
-  - Desain mengikuti `ui-antislop-master-suite` & `uwu-pastel` palette.
-  - Auto Dark/Light theme mengikuti preferensi sistem OS.
-  - Pindai Model otomatis dari router LLM lokal (seperti OmniRoute).
-  - Pratinjau Markdown popup langsung di browser sebelum mengunduh.
-  - Pemilihan folder direktori langsung tanpa konfirmasi berbelit.
-  - Auto-create database kosongan jika diarahkan ke folder baru.
-- 🔌 **Universal MCP Protocol Compatible**:
-  - Terdaftar sebagai server MCP untuk Google Antigravity, Claude Code, Cline, dan agent lainnya.
-- ⚡ **CLI Ringan**:
-  - Akses cepat via terminal dengan `mem` / `node cli.cjs`.
+## Prerequisite
 
----
+Node.js 22 or 24 with native `node:sqlite` support.
 
-## 🚀 Memulai
+## Start one shared local MCP + dashboard process
 
-### 1. Prasyarat
-- Node.js v22.x atau v24.x (dengan dukungan native `node:sqlite`).
+Windows:
 
-### 2. Jalankan MCP Server
-Tambahkan ke konfigurasi MCP client kamu (`mcp_config.json`):
-```json
-{
-  "mcpServers": {
-    "nyan-mem": {
-      "command": "node",
-      "args": ["/path/to/nyan-mem/server.cjs"]
-    }
-  }
-}
+```bat
+set NYAN_MEM_MCP_HTTP=1
+node "%USERPROFILE%\.nyan-mem\server.cjs"
 ```
 
-### 3. Jalankan Web Dashboard
-```bash
-node dashboard.cjs
-```
-Buka browser ke `http://localhost:37788`.
+The same process starts the dashboard and MCP HTTP endpoint. Dashboard: `http://127.0.0.1:37788/`. MCP: `http://127.0.0.1:37788/mcp`. Health: `http://127.0.0.1:37788/healthz`. Set `NYAN_MEM_PORT` before starting to select another port. The server binds only to loopback; do not expose it to LAN/internet.
 
-### 4. Menjalankan Test Suite
-```bash
+Keep this process running while agents use it. Stdio remains compatible, but each stdio client starts its own process/database connection. Do not run simultaneous server processes against the same SQLite database.
+
+### Hermes HTTP config
+
+In `%USERPROFILE%\.hermes\config.yaml`:
+
+```yaml
+mcp_servers:
+  nyan-mem:
+    url: http://127.0.0.1:37788/mcp
+    tools: all
+```
+
+Restart Hermes after changing the config and verify with `hermes mcp test nyan-mem`.
+
+Cline and Gemini/Antigravity use client-specific MCP settings and version-dependent HTTP transport support. Configure their HTTP MCP UI with the same endpoint if supported; remove their old stdio entry only after verifying HTTP connection. Do not configure them to launch `server.cjs` as independent processes in shared-HTTP mode.
+
+## Project scope and shared collaboration
+
+Pass `project` explicitly on every memory/state call. Agents using the same project name share memory and work state; other named projects are isolated. Project-scoped reads include `global` context. Use `project: "all"` only when intentionally searching across projects. The dashboard's active project is a convenience, not a safe identity for concurrent agents.
+
+Save durable findings/decisions and update work state; other agents can then retrieve them from the shared project. Full chat transcripts are not synchronized, and agents are not proactively notified. Reserve `global` for facts intended across projects. Existing database records are retained; use stable project names.
+
+## Test
+
+```sh
+node --check server.cjs
+node --check dashboard.cjs
+node dashboard-server-test.js
+node mcp-http-test.js
 node test-suite.js
 ```
 
----
+## Troubleshooting
 
-## 🛠️ CLI Quick Commands
-```bash
-node cli.cjs projects              # Tampilkan daftar proyek
-node cli.cjs recent [limit] [prj]  # Lihat riwayat memori terbaru
-node cli.cjs search <query>        # Cari memori via FTS5
-node cli.cjs todo list [prj]       # Lihat daftar to-do / state aktif
-```
+- Check `GET /healthz` for process availability.
+- A port conflict fails visibly; select an unused `NYAN_MEM_PORT` and update clients to match.
+- Legacy stdio configuration remains a rollback option.
 
----
+## License
 
-## 📜 Lisensi
-MIT License &copy; 2026 nyan-mem contributors.
+MIT License © 2026 nyan-mem contributors.

@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const readline = require('node:readline');
 const { startServer, getActiveProject, setActiveProject, cleanProject } = require('./dashboard.cjs');
+const MCP_HTTP = process.env.NYAN_MEM_MCP_HTTP === '1';
 
 // Configuration
 const DATA_DIR = process.env.NYAN_MEM_DIR || path.join(require('node:os').homedir(), '.nyan-mem');
@@ -20,12 +21,9 @@ function log(...args) {
   process.stderr.write(`[nyan-mem] ${args.join(' ')}\n`);
 }
 
-// Start companion web dashboard automatically
-try {
-  startServer(DASHBOARD_PORT);
-} catch (e) {
-  log(`Failed to start dashboard: ${e.message}`);
-}
+// Start companion dashboard and optional shared MCP HTTP endpoint.
+const dashboardReady = startServer(DASHBOARD_PORT, MCP_HTTP ? handleMcpHttp : null);
+dashboardReady.catch(e => { log(`Failed to start dashboard/MCP HTTP: ${e.message}`); process.exitCode = 1; });
 
 const db = new DatabaseSync(DB_PATH);
 
@@ -210,7 +208,7 @@ async function handleToolCall(name, args) {
   if (name === 'mem_dashboard') {
     const active = getActiveProject();
     return {
-      url: `http://localhost:${DASHBOARD_PORT}`,
+      url: `http://127.0.0.1:${DASHBOARD_PORT}`,
       active_project: active,
       status: 'running',
       message: `nyan-mem Web Dashboard aktif di http://localhost:${DASHBOARD_PORT} (Proyek aktif: ${active})`
@@ -322,7 +320,7 @@ async function handleToolCall(name, args) {
       technical_summary: distilled.technical_summary,
       layman_summary: distilled.layman_summary,
       tags: finalTags,
-      dashboard_url: `http://localhost:${DASHBOARD_PORT}`,
+      dashboard_url: `http://127.0.0.1:${DASHBOARD_PORT}`,
       message: `Memory #${lastId} saved to project [${project}] (dual-distilled & anti-slop).`
     };
   }
@@ -332,7 +330,7 @@ async function handleToolCall(name, args) {
     const limit = args.limit || 10;
     const category = args.category;
     const active = getActiveProject();
-    const project = args.project || active;
+    const project = args.project ? cleanProject(args.project) : active;
 
     if (!query) return { results: [] };
 
@@ -377,7 +375,7 @@ async function handleToolCall(name, args) {
   if (name === 'mem_recent') {
     const limit = args.limit || 10;
     const active = getActiveProject();
-    const project = args.project || active;
+    const project = args.project ? cleanProject(args.project) : active;
 
     let sql = 'SELECT id, COALESCE(project, \'global\') as project, category, target, technical_summary, layman_summary, tags, created_at FROM memories';
     const params = [];
@@ -424,7 +422,7 @@ async function handleToolCall(name, args) {
   if (name === 'mem_state_get') {
     const status = args.status;
     const active = getActiveProject();
-    const project = args.project || active;
+    const project = args.project ? cleanProject(args.project) : active;
     let sql = 'SELECT key, value, status, COALESCE(project, \'global\') as project, updated_at FROM work_state';
     const params = [];
     const where = [];
@@ -448,6 +446,34 @@ async function handleToolCall(name, args) {
   throw new Error(`Unknown tool: ${name}`);
 }
 
+function handleRpc(request) {
+  if (!request || request.jsonrpc !== '2.0' || typeof request.method !== 'string') return { jsonrpc: '2.0', id: request?.id ?? null, error: { code: -32600, message: 'Invalid Request' } };
+  const { id, method, params = {} } = request;
+  if (method === 'initialize') return { jsonrpc: '2.0', id, result: { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'nyan-mem', version: '1.1.0' } } };
+  if (method === 'notifications/initialized') return null;
+  if (method === 'ping') return { jsonrpc: '2.0', id, result: {} };
+  if (method === 'tools/list') return { jsonrpc: '2.0', id, result: { tools: TOOLS } };
+  if (method === 'tools/call') {
+    const args = params.arguments || {};
+    if (args.project !== undefined && (typeof args.project !== 'string' || !args.project.trim() || args.project.length > 100)) return { jsonrpc: '2.0', id, error: { code: -32602, message: 'Invalid project scope' } };
+    if (args.limit !== undefined && (!Number.isInteger(args.limit) || args.limit < 1 || args.limit > 100)) return { jsonrpc: '2.0', id, error: { code: -32602, message: 'Invalid limit' } };
+    if (args.query !== undefined && (typeof args.query !== 'string' || args.query.length > 2000)) return { jsonrpc: '2.0', id, error: { code: -32602, message: 'Invalid query' } };
+    if (args.content !== undefined && (typeof args.content !== 'string' || args.content.length > 50000)) return { jsonrpc: '2.0', id, error: { code: -32602, message: 'Invalid content' } };
+    return Promise.resolve(handleToolCall(params.name, args)).then(result => ({ jsonrpc: '2.0', id, result: { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] } }), err => ({ jsonrpc: '2.0', id, error: { code: -32000, message: String(err.message).slice(0, 500) } }));
+  }
+  return { jsonrpc: '2.0', id, error: { code: -32601, message: `Method not found: ${method}` } };
+}
+async function handleMcpHttp(req,res,url) {
+ if(url.pathname==='/healthz'&&req.method==='GET'){res.writeHead(200,{'Content-Type':'application/json'});res.end('{"status":"ok"}');return true;}
+ if(url.pathname!=='/mcp')return false;
+ if(req.method!=='POST'){res.writeHead(405,{Allow:'POST'});res.end('Method Not Allowed');return true;}
+ if(String(req.headers['content-type']||'').split(';')[0].trim()!=='application/json'){res.writeHead(415);res.end('Content-Type must be application/json');return true;}
+ const chunks=[];let bytes=0;for await(const c of req){bytes+=c.length;if(bytes>1048576){res.writeHead(413);res.end('Request too large');return true;}chunks.push(c);}
+ let data;try{data=JSON.parse(Buffer.concat(chunks).toString());}catch{res.writeHead(400);res.end(JSON.stringify({jsonrpc:'2.0',id:null,error:{code:-32700,message:'Parse error'}}));return true;}
+ const out=[];for(const item of Array.isArray(data)?data:[data]){if(item?.method==='notifications/initialized'||(item&&item.id===undefined&&typeof item.method==='string'))continue;const r=await handleRpc(item);if(r)out.push(r);}
+ if(!out.length){res.writeHead(204);res.end();return true;}res.writeHead(200,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(Array.isArray(data)?out:out[0]));return true;
+}
+
 // JSON-RPC stdio handler
 const rl = readline.createInterface({
   input: process.stdin,
@@ -455,7 +481,7 @@ const rl = readline.createInterface({
   terminal: false
 });
 
-rl.on('line', async (line) => {
+if (!MCP_HTTP) rl.on('line', async (line) => {
   line = line.trim();
   if (!line) return;
 
