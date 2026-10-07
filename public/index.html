@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nyan-mem Dashboard 🐾🎀</title>
+  <style>
+    /* CSS Variables: System Default (Auto Dark/Light) */
+    :root {
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-fast: 0.15s ease;
+      --transition-spring: 0.25s var(--ease-spring);
+    }
+
+    /* Light Mode Palette */
+    :root, [data-theme="light"] {
+      --bg: #F8F9FA;
+      --surface: #FFFFFF;
+      --surface-subtle: #F1F3F5;
+      --surface-hover: #E9ECEF;
+      --border: #DEE2E6;
+      --border-subtle: #E9ECEF;
+      --text-primary: #1A1A1A;
+      --text-secondary: #4A4A4A;
+      --text-muted: #71717A;
+      --accent: #5B45A8;
+      --accent-subtle: #EDE9FE;
+      --accent-text: #FFFFFF;
+      --mint: #15803D;
+      --mint-bg: #DCFCE7;
+      --coral: #B91C1C;
+      --coral-bg: #FEE2E2;
+      --peach: #B45309;
+      --peach-bg: #FEF3C7;
+      --lavender: #4338CA;
+      --lavender-bg: #EEF2FF;
+      --box-tech-bg: #F8FAFC;
+      --box-tech-border: #E2E8F0;
+      --box-layman-bg: #FAF5FF;
+      --box-layman-border: #F3E8FF;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-modal: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Dark Mode Palette (System Default or Manual) */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #121016;
+        --surface: #1B1822;
+        --surface-subtle: #231F2C;
+        --surface-hover: #2D2838;
+        --border: #332E3F;
+        --border-subtle: #262230;
+        --text-primary: #F4F2F7;
+        --text-secondary: #B8B2C4;
+        --text-muted: #7E788B;
+        --accent: #B8A1E3;
+        --accent-subtle: #2A233A;
+        --accent-text: #181520;
+        --mint: #86EFAC;
+        --mint-bg: #143522;
+        --coral: #FCA5A5;
+        --coral-bg: #3E1B21;
+        --peach: #FDE68A;
+        --peach-bg: #3B2A14;
+        --lavender: #C7D2FE;
+        --lavender-bg: #1E1E38;
+        --box-tech-bg: #14121A;
+        --box-tech-border: #282333;
+        --box-layman-bg: #1A1724;
+        --box-layman-border: #332C42;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+        --shadow-modal: 0 25px 50px rgba(0, 0, 0, 0.6);
+      }
+    }
+
+    /* Explicit Dark Mode Override */
+    [data-theme="dark"] {
+      --bg: #121016;
+      --surface: #1B1822;
+      --surface-subtle: #231F2C;
+      --surface-hover: #2D2838;
+      --border: #332E3F;
+      --border-subtle: #262230;
+      --text-primary: #F4F2F7;
+      --text-secondary: #B8B2C4;
+      --text-muted: #7E788B;
+      --accent: #B8A1E3;
+      --accent-subtle: #2A233A;
+      --accent-text: #181520;
+      --mint: #86EFAC;
+      --mint-bg: #143522;
+      --coral: #FCA5A5;
+      --coral-bg: #3E1B21;
+      --peach: #FDE68A;
+      --peach-bg: #3B2A14;
+      --lavender: #C7D2FE;
+      --lavender-bg: #1E1E38;
+      --box-tech-bg: #14121A;
+      --box-tech-border: #282333;
+      --box-layman-bg: #1A1724;
+      --box-layman-border: #332C42;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+      --shadow-modal: 0 25px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font);
+      min-height: 100vh;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      font-size: 28px;
+      background: var(--surface-subtle);
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      user-select: none;
+      transition: transform var(--transition-spring);
+    }
+
+    .brand-icon:hover {
+      transform: scale(1.08) rotate(-4deg);
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .brand-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Buttons */
+    .btn {
+      background: var(--surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s ease, background-color var(--transition-fast), border-color var(--transition-fast);
+      user-select: none;
+      min-height: 38px;
+    }
+
+    .btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--accent-text);
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      opacity: 0.92;
+      border-color: var(--accent);
+    }
+
+    /* Theme Toggle Pill */
+    .theme-toggle-group {
+      display: flex;
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+    }
+
+    .theme-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: color var(--transition-fast), background-color var(--transition-fast);
+    }
+
+    .theme-btn.active {
+      background: var(--surface);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Project Scoping Bar */
+    .project-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .project-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .project-bar-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .project-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .project-pill {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--transition-fast);
+    }
+
+    .project-pill:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .project-pill.active {
+      background: var(--accent-subtle);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .project-pill-count {
+      font-size: 11px;
+      background: var(--surface);
+      padding: 1px 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cross-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .cross-toggle input { cursor: pointer; accent-color: var(--accent); }
+
+    /* Stats Bar */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .stat-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .nav-tab {
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .nav-tab:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-tab.active {
+      background: var(--surface);
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 240px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      color: var(--text-primary);
+      font-size: 13px;
+      outline: none;
+      transition: border-color var(--transition-fast);
+      min-height: 40px;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .pill:hover {
+      color: var(--text-primary);
+      border-color: var(--accent);
+    }
+
+    .pill.active {
+      background: var(--accent-subtle);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .view-modes {
+      display: flex;
+      gap: 4px;
+      background: var(--surface-subtle);
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .view-btn.active {
+      background: var(--surface);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Cards */
+    .cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    @keyframes cardEnter {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: var(--shadow-sm);
+      animation: cardEnter 0.25s var(--ease-spring) forwards;
+      animation-delay: calc(var(--anim-idx, 0) * 0.03s);
+      transition: border-color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge-project {
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--surface-subtle);
+      color: var(--text-secondary);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .badge-cat {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.03em;
+    }
+
+    .cat-config { background: var(--lavender-bg); color: var(--lavender); }
+    .cat-bugfix { background: var(--coral-bg); color: var(--coral); }
+    .cat-feature { background: var(--mint-bg); color: var(--mint); }
+    .cat-decision { background: var(--peach-bg); color: var(--peach); }
+    .cat-general { background: var(--surface-subtle); color: var(--text-muted); }
+
+    .card-target {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      background: var(--surface-subtle);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--accent);
+    }
+
+    .card-date {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .card-body.full-tech { grid-template-columns: 1fr; }
+    .card-body.full-tech .layman-box { display: none; }
+
+    .card-body.full-layman { grid-template-columns: 1fr; }
+    .card-body.full-layman .tech-box { display: none; }
+
+    .box {
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .tech-box {
+      background: var(--box-tech-bg);
+      border: 1px solid var(--box-tech-border);
+      color: var(--text-primary);
+    }
+
+    .layman-box {
+      background: var(--box-layman-bg);
+      border: 1px solid var(--box-layman-border);
+      color: var(--text-primary);
+    }
+
+    .box-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tech-box .box-title { color: var(--accent); }
+    .layman-box .box-title { color: var(--mint); }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .tag-list { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag-item {
+      font-size: 11px;
+      background: var(--surface-subtle);
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .btn-delete {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: color var(--transition-fast), background-color var(--transition-fast);
+    }
+
+    .btn-delete:hover { color: var(--coral); background: var(--coral-bg); }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 620px;
+      padding: 26px;
+      box-shadow: var(--shadow-modal);
+      transform: scale(0.96) translateY(8px);
+      transition: transform var(--transition-spring);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.open .modal-box {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .form-label { font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+    .form-input, .form-textarea, .form-select {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      transition: border-color var(--transition-fast);
+      min-height: 40px;
+    }
+
+    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
+    .form-textarea { min-height: 90px; resize: vertical; }
+
+    .input-with-button {
+      display: flex;
+      gap: 8px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .status-badge.connected {
+      background: var(--mint-bg);
+      color: var(--mint);
+    }
+
+    .status-badge.error {
+      background: var(--coral-bg);
+      color: var(--coral);
+    }
+
+    /* Project Table & Settings Styling */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      margin-top: 10px;
+    }
+
+    .project-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .project-table th {
+      background: var(--surface-subtle);
+      color: var(--text-secondary);
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .project-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      vertical-align: middle;
+      color: var(--text-primary);
+    }
+
+    .project-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .project-table tr:hover td {
+      background: var(--surface-subtle);
+    }
+
+    .btn-xs {
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 4px;
+      min-height: 26px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      transition: all var(--transition-fast);
+    }
+
+    .btn-xs:hover {
+      border-color: var(--accent);
+      background: var(--surface-hover);
+    }
+
+    .btn-xs-danger {
+      color: var(--coral);
+      border-color: var(--coral-bg);
+    }
+
+    .btn-xs-danger:hover {
+      background: var(--coral-bg);
+      border-color: var(--coral);
+    }
+
+    .settings-tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+
+    .settings-tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .settings-tab-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .settings-tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* Markdown Preview Styling (Zero Slop / Clean Technical) */
+    .md-preview-container {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      max-height: 55vh;
+      overflow-y: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-break: break-word;
+      user-select: text;
+    }
+
+    .md-preview-rendered {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      max-height: 55vh;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-primary);
+    }
+
+    .md-preview-rendered h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-top: 14px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 4px;
+    }
+
+    .md-preview-rendered h3:first-child {
+      margin-top: 0;
+    }
+
+    .md-preview-rendered p {
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .md-preview-rendered strong {
+      color: var(--text-primary);
+    }
+
+    .md-preview-rendered code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      background: var(--surface-subtle);
+      padding: 2px 5px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--accent);
+    }
+
+    .md-preview-rendered hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 16px 0;
+    }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+    .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 10px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .todo-content { display: flex; flex-direction: column; gap: 4px; }
+    .todo-key {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .todo-val { font-size: 13px; color: var(--text-secondary); }
+
+    /* Accessibility / Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-delay: -1ms !important;
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        background-attachment: initial !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0s !important;
+        transition-delay: 0s !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon">🐾</div>
+        <div>
+          <h1 class="brand-title">nyan-mem Dashboard 🎀</h1>
+          <p class="brand-sub">Project-Scoped Engineering Memory &bull; Anti-Slop Dual Distillation</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <!-- Theme Toggle -->
+        <div class="theme-toggle-group">
+          <button class="theme-btn active" id="theme-system-btn" onclick="setTheme('system')">🖥️ Auto</button>
+          <button class="theme-btn" id="theme-dark-btn" onclick="setTheme('dark')">🌙 Gelap</button>
+          <button class="theme-btn" id="theme-light-btn" onclick="setTheme('light')">☀️ Terang</button>
+        </div>
+        <button class="btn" onclick="openSettingsModal()">⚙️ Pengaturan</button>
+        <button class="btn" onclick="openNewProjectModal()">📁 + Proyek</button>
+        <button class="btn btn-primary" onclick="openModal()">+ Catat Memori</button>
+      </div>
+    </header>
+
+    <!-- Project Selector Bar -->
+    <div class="project-bar">
+      <div class="project-bar-left">
+        <div class="project-bar-label">📁 Proyek:</div>
+        <div class="project-pills" id="project-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+      <div>
+        <label class="cross-toggle">
+          <input type="checkbox" id="cross-project-toggle" onchange="fetchMemories()">
+          Cari Lintas Semua Proyek 🌐
+        </label>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-label">Total Memori</div>
+        <div class="stat-value" id="stat-total">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Konfigurasi</div>
+        <div class="stat-value" id="stat-config" style="color: var(--lavender);">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Perbaikan Bug</div>
+        <div class="stat-value" id="stat-bugfix" style="color: var(--coral);">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Fitur / Decision</div>
+        <div class="stat-value" id="stat-feat" style="color: var(--mint);">0</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-memories" onclick="switchTab('memories')">🧠 Catatan & Observasi</button>
+      <button class="nav-tab" id="tab-todo" onclick="switchTab('todo')">📋 To-Do & Work State</button>
+    </div>
+
+    <!-- Tab 1: Memories View -->
+    <div id="view-memories-section">
+      <div class="toolbar">
+        <input type="text" id="search-box" class="search-input" placeholder="🔍 Cari ingatan (FTS5 BM25 search)..." oninput="onSearchInput()">
+        <div class="filter-pills" id="filter-container">
+          <div class="pill active" onclick="setFilter('')">Semua</div>
+          <div class="pill" onclick="setFilter('config')">Config</div>
+          <div class="pill" onclick="setFilter('bugfix')">Bugfix</div>
+          <div class="pill" onclick="setFilter('feature')">Feature</div>
+          <div class="pill" onclick="setFilter('decision')">Decision</div>
+        </div>
+        <div class="view-modes">
+          <button class="view-btn active" id="btn-side" onclick="setViewMode('side')">Berdampingan</button>
+          <button class="view-btn" id="btn-tech" onclick="setViewMode('tech')">AI/Engineer</button>
+          <button class="view-btn" id="btn-layman" onclick="setViewMode('layman')">Orang Awam</button>
+        </div>
+      </div>
+
+      <div class="cards-list" id="cards-container">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Tab 2: Work State / To-do Section -->
+    <div id="view-todo-section" style="display: none;">
+      <div class="toolbar" style="margin-bottom: 16px;">
+        <input type="text" id="todo-key-input" class="search-input" placeholder="Judul state (misal: active_bug_fix)">
+        <input type="text" id="todo-val-input" class="search-input" placeholder="Deskripsi tugas / catatan...">
+        <button class="btn btn-primary" onclick="addTodo()">+ Simpan State</button>
+      </div>
+      <div id="todo-list-container">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Tambah Memori -->
+  <div class="modal-overlay" id="modal-add">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">✨ Tambah Memori Baru</div>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nama Proyek (misal: ibt-laravel, sap-b1, atau global):</label>
+        <input type="text" id="modal-project" class="form-input" placeholder="global">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kejadian / Perubahan Teknis (Faktual):</label>
+        <textarea id="modal-content" class="form-textarea" placeholder="Contoh: Mengubah port 80 ke 8080 di web.config karena bentrok dengan IIS..."></textarea>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="form-group">
+          <label class="form-label">Target File / Modul (Opsional):</label>
+          <input type="text" id="modal-target" class="form-input" placeholder="misal: web.config atau src/auth.ts">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Kategori:</label>
+          <select id="modal-category" class="form-select">
+            <option value="config">Config</option>
+            <option value="bugfix">Bugfix</option>
+            <option value="feature">Feature</option>
+            <option value="decision">Decision</option>
+            <option value="discovery">Discovery</option>
+            <option value="todo">Todo</option>
+          </select>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+        <button class="btn" onclick="closeModal()">Batal</button>
+        <button class="btn btn-primary" id="btn-save-modal" onclick="saveNewMemory()">Simpan ke MCP DB</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Buat Proyek Baru -->
+  <div class="modal-overlay" id="modal-new-project">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">📁 Daftarkan Proyek Baru</div>
+        <button class="modal-close" onclick="closeNewProjectModal()">&times;</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nama Proyek (huruf kecil, strip):</label>
+        <input type="text" id="new-project-name" class="form-input" placeholder="misal: ecommerce-app, sap-addon, ibt-laravel">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deskripsi / Catatan Singkat:</label>
+        <input type="text" id="new-project-desc" class="form-input" placeholder="misal: Backend katalog sparepart Laravel Inertia">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Direktori / Workspace Path Lokal:</label>
+        <div class="input-with-button">
+          <input type="text" id="new-project-path" class="form-input" style="flex: 1;" placeholder="misal: D:\Metrodata\IBT\maul\IBT-Laravel-React-Inertia.js-">
+          <button class="btn" type="button" onclick="browseFolder('new-project-path')">📁 Pilih Folder</button>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+        <input type="checkbox" id="new-project-set-active" checked>
+        <label for="new-project-set-active" style="font-size: 13px; color: var(--text-secondary); cursor: pointer;">Jadikan proyek aktif sekarang</label>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn" onclick="closeNewProjectModal()">Batal</button>
+        <button class="btn btn-primary" onclick="submitNewProject()">Simpan Proyek</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Pengaturan (API Key, Model Scanner, DB Destination, & Kelola Proyek) -->
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-box" style="max-width: 760px;">
+      <div class="modal-header">
+        <div class="modal-title">⚙️ Pengaturan nyan-mem</div>
+        <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+      </div>
+
+      <!-- Settings Sub-Tabs -->
+      <div class="settings-tabs">
+        <button class="settings-tab-btn active" id="btn-tab-general" onclick="switchSettingsTab('general')">
+          📡 Koneksi & Penyimpanan
+        </button>
+        <button class="settings-tab-btn" id="btn-tab-projects" onclick="switchSettingsTab('projects')">
+          📁 Kelola Proyek (<span id="settings-project-count">0</span>)
+        </button>
+      </div>
+
+      <!-- Tab Content 1: General (OmniRoute & SQLite DB) -->
+      <div id="settings-tab-general-content">
+        <!-- Section: AI Provider & Endpoint -->
+        <div style="margin-bottom: 20px;">
+          <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--accent);">📡 Koneksi LLM / OmniRoute Router</h4>
+          
+          <div class="form-group">
+            <label class="form-label">Endpoint Base URL:</label>
+            <input type="text" id="set-omniroute-url" class="form-input" placeholder="http://localhost:20128/v1">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">API Key / Token:</label>
+            <div class="input-with-button">
+              <input type="password" id="set-omniroute-key" class="form-input" style="flex: 1;" placeholder="sk-...">
+              <button class="btn" type="button" onclick="toggleKeyVisibility()">👁️ Intip</button>
+            </div>
+          </div>
+
+          <!-- Model Scanner -->
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <label class="form-label">Model / Combo Global Default:</label>
+              <span id="scan-status-badge" class="status-badge" style="display: none;"></span>
+            </div>
+            <div class="input-with-button">
+              <select id="set-omniroute-model" class="form-select" style="flex: 1;">
+                <option value="only-groq">only-groq (Default Groq Fast)</option>
+                <option value="combo-cfr">combo-cfr (Cloudflare Router)</option>
+                <option value="combo-mix">combo-mix</option>
+                <option value="combo-gratis">combo-gratis</option>
+              </select>
+              <button class="btn btn-primary" type="button" id="btn-scan-models" onclick="scanModelsFromEndpoint()">
+                🔍 Pindai Model
+              </button>
+            </div>
+            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+              Klik "Pindai Model" untuk otomatis mendeteksi model/combo yang terpasang di router OmniRoute lokal kamu.
+            </span>
+          </div>
+        </div>
+
+        <!-- Section: Storage & DB Destination -->
+        <div style="margin-bottom: 20px; padding-top: 14px; border-top: 1px solid var(--border);">
+          <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--accent);">💾 Destinasi Penyimpanan SQLite</h4>
+          
+          <div class="form-group">
+            <label class="form-label">Folder / Lokasi Penyimpanan Database (memory.db):</label>
+            <div class="input-with-button">
+              <input type="text" id="set-db-path" class="form-input" style="flex: 1;" placeholder="C:\Users\yudah\.nyan-mem\memory.db">
+              <button class="btn" type="button" onclick="browseFolder('set-db-path')">📁 Pilih Folder</button>
+              <button class="btn" type="button" onclick="backupDatabase()">💾 Backup DB</button>
+            </div>
+            <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+              💡 Cukup pilih folder tujuan. Jika di folder tersebut belum ada file <code>memory.db</code>, sistem akan otomatis membuat database baru dengan memori kosongan!
+            </span>
+            <span id="backup-status-msg" style="font-size: 11px; color: var(--mint); margin-top: 4px; display: none;"></span>
+          </div>
+        </div>
+
+        <!-- Footer for General Tab -->
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border);">
+          <button class="btn" onclick="closeSettingsModal()">Tutup</button>
+          <button class="btn btn-primary" id="btn-save-settings" onclick="saveSettings()">Simpan Pengaturan</button>
+        </div>
+      </div>
+
+      <!-- Tab Content 2: Projects Management -->
+      <div id="settings-tab-projects-content" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <h4 style="font-size: 14px; color: var(--accent);">📁 Konfigurasi & Manajemen Proyek</h4>
+            <p style="font-size: 12px; color: var(--text-muted);">
+              Atur direktori path lokal, override model LLM spesifik proyek, pratinjau & unduh export ingatan, atau hapus proyek.
+            </p>
+          </div>
+          <button class="btn btn-xs" onclick="openNewProjectModal()">+ Tambah Proyek</button>
+        </div>
+
+        <div class="table-container">
+          <table class="project-table">
+            <thead>
+              <tr>
+                <th>Nama Proyek</th>
+                <th>Path / Folder Workspace</th>
+                <th>Model AI Override</th>
+                <th>Memori</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="projects-table-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border);">
+          <button class="btn" onclick="closeSettingsModal()">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Edit Proyek Spesifik -->
+  <div class="modal-overlay" id="modal-edit-project">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" id="edit-project-modal-title">✏️ Edit Proyek</div>
+        <button class="modal-close" onclick="closeEditProjectModal()">&times;</button>
+      </div>
+      <input type="hidden" id="edit-project-name">
+      <div class="form-group">
+        <label class="form-label">Deskripsi Proyek:</label>
+        <input type="text" id="edit-project-desc" class="form-input" placeholder="misal: Backend katalog sparepart Laravel + SAP B1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Direktori / Workspace Path Lokal:</label>
+        <div class="input-with-button">
+          <input type="text" id="edit-project-path" class="form-input" style="flex: 1;" placeholder="misal: D:\Metrodata\IBT\maul\IBT-Laravel-React-Inertia.js-">
+          <button class="btn" type="button" onclick="browseFolder('edit-project-path')">📁 Pilih Folder</button>
+        </div>
+        <span style="font-size: 11px; color: var(--text-muted);">
+          Bisa pilih via browser folder dialog atau ketik langsung path absolutnya.
+        </span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Model AI Override (Opsional):</label>
+        <select id="edit-project-model" class="form-select">
+          <option value="">(Gunakan Default Global)</option>
+          <option value="only-groq">only-groq (Groq Super Fast)</option>
+          <option value="combo-cfr">combo-cfr (Cloudflare AI)</option>
+          <option value="combo-mix">combo-mix</option>
+          <option value="combo-gratis">combo-gratis</option>
+        </select>
+        <span style="font-size: 11px; color: var(--text-muted);">
+          Jika diatur, proyek ini akan selalu memakai model ini saat auto-distil memori baru.
+        </span>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+        <button class="btn" onclick="closeEditProjectModal()">Batal</button>
+        <button class="btn btn-primary" id="btn-save-project-edit" onclick="submitEditProject()">Simpan Perubahan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Pratinjau Markdown Proyek (Popup Preview Before Download) -->
+  <div class="modal-overlay" id="modal-preview-md" style="z-index: 110;">
+    <div class="modal-box" style="max-width: 820px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="preview-md-title">📄 Pratinjau Markdown Proyek</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;" id="preview-md-subtitle"></div>
+        </div>
+        <button class="modal-close" onclick="closePreviewMdModal()">&times;</button>
+      </div>
+      
+      <!-- Preview Mode Switcher & Actions -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+        <div class="view-modes">
+          <button class="view-btn active" id="btn-view-rendered" onclick="toggleMdView('rendered')">Pratinjau Dokumen</button>
+          <button class="view-btn" id="btn-view-raw" onclick="toggleMdView('raw')">Raw Markdown</button>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-xs" onclick="copyPreviewMarkdown()">📋 Salin Teks</button>
+          <button class="btn btn-xs btn-primary" id="btn-download-preview-md" onclick="downloadCurrentPreviewMd()">
+            📥 Download .md
+          </button>
+        </div>
+      </div>
+
+      <!-- Rendered View -->
+      <div id="preview-md-rendered" class="md-preview-rendered">
+        <!-- Rendered HTML -->
+      </div>
+
+      <!-- Raw View -->
+      <div id="preview-md-raw" class="md-preview-container" style="display: none;">
+        <!-- Raw Text -->
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+        <button class="btn" onclick="closePreviewMdModal()">Tutup</button>
+        <button class="btn btn-primary" onclick="downloadCurrentPreviewMd()">📥 Unduh File Markdown</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden native directory picker -->
+  <input type="file" id="native-folder-picker" webkitdirectory directory style="display: none;">
+
+  <script>
+    let activeProject = 'all';
+    let activeFilter = '';
+    let activeViewMode = 'side';
+    let searchTimeout = null;
+
+    // Theme Management (System default, manual dark/light override)
+    function initTheme() {
+      const savedTheme = localStorage.getItem('nyan-theme') || 'system';
+      applyTheme(savedTheme);
+    }
+
+    function setTheme(theme) {
+      localStorage.setItem('nyan-theme', theme);
+      applyTheme(theme);
+    }
+
+    function applyTheme(theme) {
+      document.getElementById('theme-system-btn').classList.toggle('active', theme === 'system');
+      document.getElementById('theme-dark-btn').classList.toggle('active', theme === 'dark');
+      document.getElementById('theme-light-btn').classList.toggle('active', theme === 'light');
+
+      if (theme === 'system') {
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    }
+
+    // Projects
+    async function fetchProjects() {
+      try {
+        const res = await fetch('/api/projects');
+        const data = await res.json();
+        const container = document.getElementById('project-container');
+        
+        let pillsHtml = `
+          <div class="project-pill ${activeProject === 'all' ? 'active' : ''}" onclick="setProject('all')">
+            Semua Proyek
+          </div>
+        `;
+
+        for (const p of data.projects || []) {
+          const isActive = activeProject === p.name;
+          pillsHtml += `
+            <div class="project-pill ${isActive ? 'active' : ''}" onclick="setProject('${p.name}')">
+              ${p.name} <span class="project-pill-count">${p.count}</span>
+            </div>
+          `;
+        }
+        container.innerHTML = pillsHtml;
+      } catch (err) {
+        console.error('Projects error:', err);
+      }
+    }
+
+    async function setProject(p) {
+      activeProject = p;
+      if (p !== 'all') {
+        await fetch('/api/project/active', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project: p })
+        });
+      }
+      fetchProjects();
+      fetchMemories();
+      if (document.getElementById('view-todo-section').style.display !== 'none') {
+        fetchTodos();
+      }
+    }
+
+    // Memories Fetch & Render
+    async function fetchMemories() {
+      const q = document.getElementById('search-box').value.trim();
+      const cross = document.getElementById('cross-project-toggle').checked;
+      let url = '/api/memories?limit=50';
+      if (q) url += '&q=' + encodeURIComponent(q);
+      if (activeFilter) url += '&category=' + encodeURIComponent(activeFilter);
+      if (cross) {
+        url += '&all_projects=true';
+      } else if (activeProject && activeProject !== 'all') {
+        url += '&project=' + encodeURIComponent(activeProject);
+      }
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        renderCards(data.memories || []);
+        updateStats();
+      } catch (err) {
+        console.error('Fetch error:', err);
+      }
+    }
+
+    async function updateStats() {
+      try {
+        const cross = document.getElementById('cross-project-toggle').checked;
+        let url = '/api/stats';
+        if (cross) {
+          url += '?all_projects=true';
+        } else if (activeProject && activeProject !== 'all') {
+          url += '?project=' + encodeURIComponent(activeProject);
+        }
+        const res = await fetch(url);
+        const s = await res.json();
+        document.getElementById('stat-total').innerText = s.total || 0;
+        document.getElementById('stat-config').innerText = s.by_category?.config || 0;
+        document.getElementById('stat-bugfix').innerText = s.by_category?.bugfix || 0;
+        document.getElementById('stat-feat').innerText = (s.by_category?.feature || 0) + (s.by_category?.decision || 0);
+      } catch (err) {}
+    }
+
+    function renderCards(list) {
+      const container = document.getElementById('cards-container');
+      if (!list.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🍃</div>
+            <p>Belum ada memori untuk scope ini.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const bodyClass = activeViewMode === 'tech' ? 'full-tech' : (activeViewMode === 'layman' ? 'full-layman' : '');
+
+      container.innerHTML = list.map((m, idx) => {
+        const cat = (m.category || 'general').toLowerCase();
+        let catClass = 'cat-general';
+        if (cat.includes('bug')) catClass = 'cat-bugfix';
+        else if (cat.includes('config')) catClass = 'cat-config';
+        else if (cat.includes('feat')) catClass = 'cat-feature';
+        else if (cat.includes('decis')) catClass = 'cat-decision';
+
+        const tags = Array.isArray(m.tags) ? m.tags : [];
+        const dateStr = m.created_at ? new Date(m.created_at).toLocaleString('id-ID') : '';
+
+        return `
+          <div class="card" style="--anim-idx: ${idx};">
+            <div class="card-header">
+              <div class="card-meta">
+                <span class="badge-project">📁 ${escapeHtml(m.project || 'global')}</span>
+                <span class="badge-cat ${catClass}">#${m.id} ${m.category}</span>
+                ${m.target ? `<span class="card-target">${escapeHtml(m.target)}</span>` : ''}
+              </div>
+              <span class="card-date">${dateStr}</span>
+            </div>
+            <div class="card-body ${bodyClass}">
+              <div class="box tech-box">
+                <div class="box-title">🔬 AI & Software Engineer (Faktual / Strict)</div>
+                <div>${escapeHtml(m.technical_summary || m.raw_content)}</div>
+              </div>
+              <div class="box layman-box">
+                <div class="box-title">🌱 Orang Awam (Bahasa Manusia)</div>
+                <div>${escapeHtml(m.layman_summary || '-')}</div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <div class="tag-list">
+                ${tags.map(t => `<span class="tag-item">#${escapeHtml(t)}</span>`).join('')}
+              </div>
+              <button class="btn-delete" onclick="deleteMemory(${m.id})">🗑️ Hapus</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function deleteMemory(id) {
+      if (!confirm('Yakin ingin menghapus memori ini?')) return;
+      await fetch('/api/memories/' + id, { method: 'DELETE' });
+      fetchProjects();
+      fetchMemories();
+    }
+
+    function onSearchInput() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(fetchMemories, 300);
+    }
+
+    function setFilter(cat) {
+      activeFilter = cat;
+      const pills = document.querySelectorAll('#filter-container .pill');
+      pills.forEach(p => p.classList.remove('active'));
+      event.target.classList.add('active');
+      fetchMemories();
+    }
+
+    function setViewMode(mode) {
+      activeViewMode = mode;
+      document.getElementById('btn-side').classList.toggle('active', mode === 'side');
+      document.getElementById('btn-tech').classList.toggle('active', mode === 'tech');
+      document.getElementById('btn-layman').classList.toggle('active', mode === 'layman');
+      fetchMemories();
+    }
+
+    // Modals
+    function openModal() {
+      document.getElementById('modal-add').classList.add('open');
+      document.getElementById('modal-project').value = activeProject === 'all' ? 'global' : activeProject;
+      document.getElementById('modal-content').focus();
+    }
+
+    function closeModal() {
+      document.getElementById('modal-add').classList.remove('open');
+    }
+
+    function openNewProjectModal() {
+      document.getElementById('modal-new-project').classList.add('open');
+      document.getElementById('new-project-name').focus();
+    }
+
+    function closeNewProjectModal() {
+      document.getElementById('modal-new-project').classList.remove('open');
+    }
+
+    // Settings Modal
+    async function openSettingsModal() {
+      document.getElementById('modal-settings').classList.add('open');
+      try {
+        const res = await fetch('/api/settings');
+        const s = await res.json();
+        document.getElementById('set-omniroute-url').value = s.omniroute_url || '';
+        document.getElementById('set-omniroute-key').value = s.omniroute_key || '';
+        document.getElementById('set-db-path').value = s.db_path || '';
+        
+        // Ensure model option exists in select
+        const modelSelect = document.getElementById('set-omniroute-model');
+        const currentModel = s.omniroute_model || 'only-groq';
+        let exists = false;
+        for (let i = 0; i < modelSelect.options.length; i++) {
+          if (modelSelect.options[i].value === currentModel) {
+            exists = true;
+            break;
+          }
+        }
+        if (!exists) {
+          const opt = document.createElement('option');
+          opt.value = currentModel;
+          opt.text = currentModel;
+          modelSelect.appendChild(opt);
+        }
+        modelSelect.value = currentModel;
+      } catch (err) {
+        console.error('Settings load error:', err);
+      }
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('modal-settings').classList.remove('open');
+    }
+
+    function toggleKeyVisibility() {
+      const input = document.getElementById('set-omniroute-key');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    async function scanModelsFromEndpoint() {
+      const btn = document.getElementById('btn-scan-models');
+      const badge = document.getElementById('scan-status-badge');
+      const url = document.getElementById('set-omniroute-url').value.trim();
+      const key = document.getElementById('set-omniroute-key').value.trim();
+
+      btn.innerText = '⏳ Memindai...';
+      btn.disabled = true;
+      badge.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/scan-models', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, key })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+
+        const select = document.getElementById('set-omniroute-model');
+        const currentSelected = select.value;
+        select.innerHTML = '';
+
+        // Group 1: Combos & Routers
+        if (data.combos && data.combos.length) {
+          const groupCombos = document.createElement('optgroup');
+          groupCombos.label = '⚡ Combos & Routers';
+          for (const c of data.combos) {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.text = c;
+            groupCombos.appendChild(opt);
+          }
+          select.appendChild(groupCombos);
+        }
+
+        // Group 2: Individual Models
+        if (data.models && data.models.length) {
+          const groupModels = document.createElement('optgroup');
+          groupModels.label = '🤖 Model Terdeteksi';
+          for (const m of data.models) {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.text = m;
+            groupModels.appendChild(opt);
+          }
+          select.appendChild(groupModels);
+        }
+
+        select.value = currentSelected;
+        badge.className = 'status-badge connected';
+        badge.innerText = `✅ Terdeteksi ${data.total} model`;
+        badge.style.display = 'inline-flex';
+      } catch (err) {
+        badge.className = 'status-badge error';
+        badge.innerText = `❌ Gagal: ${err.message}`;
+        badge.style.display = 'inline-flex';
+      } finally {
+        btn.innerText = '🔍 Pindai Model';
+        btn.disabled = false;
+      }
+    }
+
+    async function saveSettings() {
+      const omniroute_url = document.getElementById('set-omniroute-url').value.trim();
+      const omniroute_key = document.getElementById('set-omniroute-key').value.trim();
+      const omniroute_model = document.getElementById('set-omniroute-model').value;
+      const db_path = document.getElementById('set-db-path').value.trim();
+
+      const btn = document.getElementById('btn-save-settings');
+      btn.innerText = 'Menyimpan...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ omniroute_url, omniroute_key, omniroute_model, db_path })
+        });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error);
+        alert('Pengaturan berhasil disimpan!');
+        closeSettingsModal();
+      } catch (err) {
+        alert('Gagal menyimpan: ' + err.message);
+      } finally {
+        btn.innerText = 'Simpan Pengaturan';
+        btn.disabled = false;
+      }
+    }
+
+    async function backupDatabase() {
+      const msg = document.getElementById('backup-status-msg');
+      try {
+        const res = await fetch('/api/backup-db');
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+        msg.style.display = 'block';
+        msg.innerText = `✅ Backup tersimpan: ${data.backup_path}`;
+      } catch (err) {
+        alert('Backup gagal: ' + err.message);
+      }
+    }
+
+    let cachedProjectsList = [];
+
+    function switchSettingsTab(tab) {
+      document.getElementById('btn-tab-general').classList.toggle('active', tab === 'general');
+      document.getElementById('btn-tab-projects').classList.toggle('active', tab === 'projects');
+      document.getElementById('settings-tab-general-content').style.display = tab === 'general' ? 'block' : 'none';
+      document.getElementById('settings-tab-projects-content').style.display = tab === 'projects' ? 'block' : 'none';
+      if (tab === 'projects') {
+        renderProjectsSettingsTable();
+      }
+    }
+
+    async function renderProjectsSettingsTable() {
+      try {
+        const res = await fetch('/api/projects');
+        const data = await res.json();
+        cachedProjectsList = data.projects || [];
+        document.getElementById('settings-project-count').innerText = cachedProjectsList.length;
+
+        const tbody = document.getElementById('projects-table-body');
+        if (!cachedProjectsList.length) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Belum ada proyek terdaftar.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = cachedProjectsList.map(p => {
+          const isAct = p.is_active;
+          const isGlobal = p.name === 'global';
+          return `
+            <tr>
+              <td>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <strong style="color: var(--text-primary); font-size: 13px;">${escapeHtml(p.name)}</strong>
+                  ${isAct ? '<span class="status-badge connected" style="font-size: 10px; padding: 2px 6px;">Aktif</span>' : ''}
+                </div>
+                ${p.description ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${escapeHtml(p.description)}</div>` : ''}
+              </td>
+              <td>
+                <span style="font-family: monospace; font-size: 11px; color: var(--text-secondary); word-break: break-all;">
+                  ${p.path ? escapeHtml(p.path) : '<span style="color: var(--text-muted);">(Belum diset)</span>'}
+                </span>
+              </td>
+              <td>
+                <span class="badge-project" style="font-size: 11px;">
+                  ${p.model_override ? escapeHtml(p.model_override) : '<span style="color: var(--text-muted); font-weight: normal;">Default Global</span>'}
+                </span>
+              </td>
+              <td>
+                <strong style="font-size: 12px; color: var(--accent);">${p.count}</strong>
+              </td>
+              <td>
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                  <button class="btn-xs" onclick="openEditProjectModal('${escapeHtml(p.name)}')">✏️ Edit</button>
+                  <button class="btn-xs" onclick="previewProjectMarkdown('${escapeHtml(p.name)}')">📄 Pratinjau MD</button>
+                  <button class="btn-xs" onclick="exportProjectMemories('${escapeHtml(p.name)}', 'json')">📥 JSON</button>
+                  ${!isGlobal ? `<button class="btn-xs btn-xs-danger" onclick="deleteProject('${escapeHtml(p.name)}')">🗑️ Hapus</button>` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Failed to render projects settings:', err);
+      }
+    }
+
+    function openEditProjectModal(projectName) {
+      const p = cachedProjectsList.find(x => x.name === projectName);
+      if (!p) return;
+      document.getElementById('edit-project-modal-title').innerText = `✏️ Edit Proyek [${p.name}]`;
+      document.getElementById('edit-project-name').value = p.name;
+      document.getElementById('edit-project-desc').value = p.description || '';
+      document.getElementById('edit-project-path').value = p.path || '';
+
+      // Populate model override dropdown options if scanned models exist
+      const select = document.getElementById('edit-project-model');
+      const currentModel = p.model_override || '';
+      if (currentModel) {
+        let exists = false;
+        for (let i = 0; i < select.options.length; i++) {
+          if (select.options[i].value === currentModel) {
+            exists = true;
+            break;
+          }
+        }
+        if (!exists) {
+          const opt = document.createElement('option');
+          opt.value = currentModel;
+          opt.text = currentModel;
+          select.appendChild(opt);
+        }
+      }
+      select.value = currentModel;
+
+      document.getElementById('modal-edit-project').classList.add('open');
+    }
+
+    function closeEditProjectModal() {
+      document.getElementById('modal-edit-project').classList.remove('open');
+    }
+
+    async function submitEditProject() {
+      const name = document.getElementById('edit-project-name').value;
+      const description = document.getElementById('edit-project-desc').value.trim();
+      const path = document.getElementById('edit-project-path').value.trim();
+      const model_override = document.getElementById('edit-project-model').value;
+
+      const btn = document.getElementById('btn-save-project-edit');
+      btn.innerText = 'Menyimpan...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/projects/' + encodeURIComponent(name), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description, path, model_override })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        closeEditProjectModal();
+        renderProjectsSettingsTable();
+        fetchProjects();
+      } catch (err) {
+        alert('Gagal update proyek: ' + err.message);
+      } finally {
+        btn.innerText = 'Simpan Perubahan';
+        btn.disabled = false;
+      }
+    }
+
+    async function deleteProject(name) {
+      if (!confirm(`Hapus proyek "${name}"? Semua ingatan teknis proyek ini akan otomatis dipindahkan ke proyek "global" agar tidak hilang.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/projects/' + encodeURIComponent(name), { method: 'DELETE' });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error);
+        renderProjectsSettingsTable();
+        if (activeProject === name) activeProject = 'global';
+        fetchProjects();
+        fetchMemories();
+      } catch (err) {
+        alert('Gagal menghapus proyek: ' + err.message);
+      }
+    }
+
+    let currentPreviewMdText = '';
+    let currentPreviewProject = '';
+
+    // Preview Project Markdown (Popup modal before download)
+    async function previewProjectMarkdown(projectName) {
+      currentPreviewProject = projectName;
+      document.getElementById('preview-md-title').innerText = `📄 Pratinjau Markdown Proyek [${projectName}]`;
+      document.getElementById('preview-md-subtitle').innerText = 'Memuat catatan ingatan langsung dari database...';
+      document.getElementById('preview-md-rendered').innerHTML = '<div style="color: var(--text-muted); padding: 20px; text-align: center;">⏳ Mengambil data markdown...</div>';
+      document.getElementById('preview-md-raw').innerText = 'Memuat...';
+      document.getElementById('modal-preview-md').classList.add('open');
+
+      try {
+        const res = await fetch(`/api/projects/export?project=${encodeURIComponent(projectName)}&format=markdown`);
+        if (!res.ok) throw new Error('Gagal memuat export markdown');
+        const text = await res.text();
+        currentPreviewMdText = text;
+
+        document.getElementById('preview-md-subtitle').innerText = `Siap dilihat & diunduh (${text.length} karakter)`;
+        document.getElementById('preview-md-raw').innerText = text;
+        renderMarkdownHtml(text);
+      } catch (err) {
+        document.getElementById('preview-md-rendered').innerHTML = `<div style="color: var(--coral); padding: 20px;">❌ Error: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function renderMarkdownHtml(md) {
+      const container = document.getElementById('preview-md-rendered');
+      const lines = md.split('\n');
+      let html = '';
+      let inCard = false;
+
+      for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
+
+        if (line.startsWith('# ')) {
+          html += `<h2 style="font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${escapeHtml(line.slice(2))}</h2>`;
+        } else if (line.startsWith('### ')) {
+          if (inCard) html += '</div>';
+          html += '<div style="background: var(--surface-subtle); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 12px;">';
+          html += `<h3 style="margin-top: 0;">${escapeHtml(line.slice(4))}</h3>`;
+          inCard = true;
+        } else if (line.startsWith('**🔬 AI / Technical Summary:**')) {
+          html += '<div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--accent); margin-top: 8px;">🔬 Ringkasan AI / Engineer:</div>';
+        } else if (line.startsWith('**🌱 Bahasa Awam:**')) {
+          html += '<div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--mint); margin-top: 8px;">🌱 Bahasa Awam:</div>';
+        } else if (line.startsWith('---')) {
+          if (inCard) {
+            html += '</div>';
+            inCard = false;
+          }
+        } else {
+          // Parse basic tags or italic
+          let safe = escapeHtml(line);
+          safe = safe.replace(/\*Tanggal: (.*?)\*/g, '<span style="font-size: 11px; color: var(--text-muted);">$1</span>');
+          safe = safe.replace(/\*Tags:\* (.*)/g, '<span style="font-size: 11px; color: var(--text-muted); font-family: monospace;">Tags: $1</span>');
+          safe = safe.replace(/`([^`]+)`/g, '<code>$1</code>');
+          html += `<p style="margin: 4px 0;">${safe}</p>`;
+        }
+      }
+
+      if (inCard) html += '</div>';
+      container.innerHTML = html || '<p style="color: var(--text-muted);">Proyek ini belum memiliki catatan memori tersimpan.</p>';
+    }
+
+    function toggleMdView(mode) {
+      document.getElementById('btn-view-rendered').classList.toggle('active', mode === 'rendered');
+      document.getElementById('btn-view-raw').classList.toggle('active', mode === 'raw');
+      document.getElementById('preview-md-rendered').style.display = mode === 'rendered' ? 'block' : 'none';
+      document.getElementById('preview-md-raw').style.display = mode === 'raw' ? 'block' : 'none';
+    }
+
+    function closePreviewMdModal() {
+      document.getElementById('modal-preview-md').classList.remove('open');
+    }
+
+    function copyPreviewMarkdown() {
+      if (!currentPreviewMdText) return alert('Tidak ada teks markdown untuk disalin!');
+      navigator.clipboard.writeText(currentPreviewMdText).then(() => {
+        alert('Teks Markdown berhasil disalin ke clipboard! 📋');
+      }).catch(err => {
+        alert('Gagal menyalin: ' + err.message);
+      });
+    }
+
+    function downloadCurrentPreviewMd() {
+      if (!currentPreviewProject) return;
+      window.open(`/api/projects/export?project=${encodeURIComponent(currentPreviewProject)}&format=markdown`, '_blank');
+    }
+
+    // Directory Browser Picker (Streamlined zero-prompt directory picker)
+    let activeTargetInputId = '';
+
+    async function browseFolder(targetInputId) {
+      activeTargetInputId = targetInputId;
+      const input = document.getElementById(targetInputId);
+
+      // Modern Chromium/Edge File System Access API
+      if ('showDirectoryPicker' in window) {
+        try {
+          const dirHandle = await window.showDirectoryPicker();
+          if (dirHandle && dirHandle.name) {
+            // Direct assignment: If selecting DB path, ensure memory.db is appended
+            if (targetInputId === 'set-db-path') {
+              input.value = dirHandle.name + '\\memory.db';
+            } else {
+              input.value = dirHandle.name;
+            }
+          }
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return; // User closed dialog
+          console.warn('showDirectoryPicker fallback:', err);
+        }
+      }
+
+      // Fallback via hidden input file webkitdirectory
+      const picker = document.getElementById('native-folder-picker');
+      picker.onchange = function(e) {
+        if (e.target.files && e.target.files.length > 0) {
+          const firstFile = e.target.files[0];
+          const relativePath = firstFile.webkitRelativePath || '';
+          const folderName = relativePath.split('/')[0] || '';
+          if (targetInputId === 'set-db-path') {
+            input.value = folderName + '\\memory.db';
+          } else {
+            input.value = folderName;
+          }
+        }
+        picker.value = '';
+      };
+      picker.click();
+    }
+
+    function exportProjectMemories(projectName, format) {
+      window.open(`/api/projects/export?project=${encodeURIComponent(projectName)}&format=${encodeURIComponent(format)}`, '_blank');
+    }
+
+    // Projects submission
+    async function submitNewProject() {
+      const name = document.getElementById('new-project-name').value.trim();
+      const description = document.getElementById('new-project-desc').value.trim();
+      const path = document.getElementById('new-project-path').value.trim();
+      const setActive = document.getElementById('new-project-set-active').checked;
+
+      if (!name) return alert('Nama proyek wajib diisi!');
+
+      await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description, path, set_active: setActive })
+      });
+
+      closeNewProjectModal();
+      document.getElementById('new-project-name').value = '';
+      document.getElementById('new-project-desc').value = '';
+      document.getElementById('new-project-path').value = '';
+      if (setActive) {
+        activeProject = name.toLowerCase().replace(/[^a-z0-9_\-]/g, '-');
+      }
+      fetchProjects();
+      fetchMemories();
+      if (document.getElementById('modal-settings').classList.contains('open')) {
+        renderProjectsSettingsTable();
+      }
+    }
+
+    // Save memory submission
+    async function saveNewMemory() {
+      const content = document.getElementById('modal-content').value.trim();
+      const target = document.getElementById('modal-target').value.trim();
+      const category = document.getElementById('modal-category').value;
+      const project = document.getElementById('modal-project').value.trim() || 'global';
+      if (!content) return alert('Silakan isi kejadian teknisnya!');
+
+      const btn = document.getElementById('btn-save-modal');
+      btn.innerText = 'Distill via OmniRoute...';
+      btn.disabled = true;
+
+      try {
+        await fetch('/api/memories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content, target, category, project })
+        });
+        closeModal();
+        document.getElementById('modal-content').value = '';
+        document.getElementById('modal-target').value = '';
+        fetchProjects();
+        fetchMemories();
+      } catch (err) {
+        alert('Gagal menyimpan memori: ' + err.message);
+      } finally {
+        btn.innerText = 'Simpan ke MCP DB';
+        btn.disabled = false;
+      }
+    }
+
+    // Tabs
+    function switchTab(tab) {
+      document.getElementById('tab-memories').classList.toggle('active', tab === 'memories');
+      document.getElementById('tab-todo').classList.toggle('active', tab === 'todo');
+      document.getElementById('view-memories-section').style.display = tab === 'memories' ? 'block' : 'none';
+      document.getElementById('view-todo-section').style.display = tab === 'todo' ? 'block' : 'none';
+      if (tab === 'todo') fetchTodos();
+    }
+
+    async function fetchTodos() {
+      let url = '/api/state';
+      const cross = document.getElementById('cross-project-toggle').checked;
+      if (!cross && activeProject && activeProject !== 'all') {
+        url += '?project=' + encodeURIComponent(activeProject);
+      }
+      const res = await fetch(url);
+      const data = await res.json();
+      const c = document.getElementById('todo-list-container');
+      if (!data.states?.length) {
+        c.innerHTML = '<div class="empty-state"><p>Belum ada to-do / state tersimpan.</p></div>';
+        return;
+      }
+      c.innerHTML = data.states.map(s => `
+        <div class="todo-item">
+          <div class="todo-content">
+            <div class="todo-key">
+              <span>${escapeHtml(s.key)}</span>
+              <span class="badge-project" style="font-size: 10px;">${escapeHtml(s.project || 'global')}</span>
+            </div>
+            <div class="todo-val">${escapeHtml(s.value)}</div>
+          </div>
+          <button class="btn-delete" onclick="deleteTodo('${escapeHtml(s.key)}')">Selesai / Hapus</button>
+        </div>
+      `).join('');
+    }
+
+    async function addTodo() {
+      const key = document.getElementById('todo-key-input').value.trim();
+      const value = document.getElementById('todo-val-input').value.trim();
+      const project = activeProject === 'all' ? 'global' : activeProject;
+      if (!key || !value) return alert('Isi key dan deskripsi!');
+      await fetch('/api/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value, status: 'todo', project })
+      });
+      document.getElementById('todo-key-input').value = '';
+      document.getElementById('todo-val-input').value = '';
+      fetchTodos();
+    }
+
+    async function deleteTodo(key) {
+      await fetch('/api/state/' + encodeURIComponent(key), { method: 'DELETE' });
+      fetchTodos();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, function(m) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+      });
+    }
+
+    // Init
+    initTheme();
+    fetchProjects();
+    fetchMemories();
+  </script>
+</body>
+</html>
