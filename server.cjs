@@ -21,9 +21,15 @@ function log(...args) {
   process.stderr.write(`[nyan-mem] ${args.join(' ')}\n`);
 }
 
-// Start companion dashboard and optional shared MCP HTTP endpoint.
-const dashboardReady = startServer(DASHBOARD_PORT, MCP_HTTP ? handleMcpHttp : null);
-dashboardReady.catch(e => { log(`Failed to start dashboard/MCP HTTP: ${e.message}`); process.exitCode = 1; });
+// Start companion dashboard and unified MCP HTTP endpoint (Dashboard UI + MCP HTTP on port 37788).
+const dashboardReady = startServer(DASHBOARD_PORT, handleMcpHttp);
+dashboardReady.catch(e => {
+  if (e.code === 'EADDRINUSE') {
+    log(`Port ${DASHBOARD_PORT} already in use; companion dashboard already active on host.`);
+  } else {
+    log(`Failed to start dashboard/MCP HTTP: ${e.message}`);
+  }
+});
 
 const db = new DatabaseSync(DB_PATH);
 
@@ -548,3 +554,5 @@ if (!MCP_HTTP) rl.on('line', async (line) => {
 });
 
 log(`nyan-mem MCP Server ready with companion Web Dashboard on http://localhost:${DASHBOARD_PORT}`);
+
+module.exports = { handleMcpHttp, handleRpc, handleToolCall, TOOLS };
