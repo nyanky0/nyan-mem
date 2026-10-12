@@ -17,6 +17,7 @@ let db = new DatabaseSync(DB_PATH);
 // Initialize schema
 function initDb() {
   db.exec(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS projects (
       name TEXT PRIMARY KEY,
       description TEXT,
@@ -40,7 +41,8 @@ function initDb() {
       technical_summary TEXT,
       layman_summary TEXT,
       tags TEXT,
-      created_at TEXT
+      created_at TEXT,
+      updated_at TEXT
     );
 
     CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts USING fts5(
@@ -68,9 +70,34 @@ function initDb() {
     INSERT OR IGNORE INTO app_settings (key, value) VALUES ('db_path', '${DB_PATH.replace(/\\/g, '\\\\')}');
   `);
 
-  try { db.exec("ALTER TABLE projects ADD COLUMN path TEXT DEFAULT ''"); } catch(e){}
-  try { db.exec("ALTER TABLE projects ADD COLUMN model_override TEXT DEFAULT ''"); } catch(e){}
-  try { db.exec("ALTER TABLE projects ADD COLUMN updated_at TEXT DEFAULT ''"); } catch(e){}
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS memory_links (
+      parent_id INTEGER NOT NULL REFERENCES memories(id) ON DELETE CASCADE,
+      source_id INTEGER NOT NULL REFERENCES memories(id) ON DELETE CASCADE,
+      relation TEXT NOT NULL CHECK(relation IN ('merge','promotion')),
+      created_at TEXT NOT NULL,
+      PRIMARY KEY(parent_id, source_id, relation),
+      CHECK(parent_id != source_id)
+    );
+  `);
+  const hasColumn = (table, column) => db.prepare(`PRAGMA table_info(${table})`).all().some(row => row.name === column);
+  const migrations = [
+    [1, () => { if (!hasColumn('projects','path')) db.exec("ALTER TABLE projects ADD COLUMN path TEXT DEFAULT ''"); if (!hasColumn('projects','model_override')) db.exec("ALTER TABLE projects ADD COLUMN model_override TEXT DEFAULT ''"); if (!hasColumn('projects','updated_at')) db.exec("ALTER TABLE projects ADD COLUMN updated_at TEXT DEFAULT ''"); }],
+    [2, () => { if (!hasColumn('memories','status')) db.exec("ALTER TABLE memories ADD COLUMN status TEXT NOT NULL DEFAULT 'approved'"); if (!hasColumn('memories','deleted_at')) db.exec("ALTER TABLE memories ADD COLUMN deleted_at TEXT DEFAULT NULL"); }],
+    [3, () => {
+      if (!hasColumn('memories','updated_at')) db.exec("ALTER TABLE memories ADD COLUMN updated_at TEXT DEFAULT NULL");
+      db.exec(`CREATE TRIGGER IF NOT EXISTS memories_ai AFTER INSERT ON memories BEGIN INSERT INTO memories_fts(rowid,project,technical_summary,layman_summary,raw_content,tags) VALUES(new.id,new.project,new.technical_summary,new.layman_summary,new.raw_content,new.tags); END;
+        CREATE TRIGGER IF NOT EXISTS memories_ad AFTER DELETE ON memories BEGIN INSERT INTO memories_fts(memories_fts,rowid,project,technical_summary,layman_summary,raw_content,tags) VALUES('delete',old.id,old.project,old.technical_summary,old.layman_summary,old.raw_content,old.tags); END;
+        CREATE TRIGGER IF NOT EXISTS memories_au AFTER UPDATE ON memories BEGIN INSERT INTO memories_fts(memories_fts,rowid,project,technical_summary,layman_summary,raw_content,tags) VALUES('delete',old.id,old.project,old.technical_summary,old.layman_summary,old.raw_content,old.tags); INSERT INTO memories_fts(rowid,project,technical_summary,layman_summary,raw_content,tags) VALUES(new.id,new.project,new.technical_summary,new.layman_summary,new.raw_content,new.tags); END;
+        INSERT INTO memories_fts(memories_fts) VALUES('rebuild');`);
+    }]
+  ];
+  for (const [version, up] of migrations) {
+    if (db.prepare('SELECT 1 FROM schema_migrations WHERE version=?').get(version)) continue;
+    db.exec('BEGIN IMMEDIATE');
+    try { up(); db.prepare('INSERT INTO schema_migrations(version,applied_at) VALUES (?,?)').run(version,new Date().toISOString()); db.exec('COMMIT'); }
+    catch (err) { db.exec('ROLLBACK'); throw err; }
+  }
 
   db.exec(`
     INSERT OR IGNORE INTO projects (name, description, path, model_override, created_at, updated_at)
@@ -275,11 +302,15 @@ async function handleDashboardRequest(req, res, url) {
         }
 
         setSetting('db_path', targetDbPath);
+        let oldDb = db;
         try {
           db = new DatabaseSync(targetDbPath);
           DB_PATH = targetDbPath;
           initDb(); // Auto-create schema and default global project if fresh DB
+          oldDb.close();
         } catch (e) {
+          try { db.close(); } catch (_) {}
+          db = oldDb;
           throw new Error(`Gagal membuka atau membuat database di ${targetDbPath}: ${e.message}`);
         }
       }
@@ -354,10 +385,10 @@ async function handleDashboardRequest(req, res, url) {
     const prj = url.searchParams.get('project') || getActiveProject();
     const format = url.searchParams.get('format') || 'json';
 
-    let sql = 'SELECT id, project, category, target, technical_summary, layman_summary, tags, created_at FROM memories';
+    let sql = "SELECT id, project, category, target, technical_summary, layman_summary, tags, created_at, status, deleted_at FROM memories WHERE status != 'trash'";
     const params = [];
     if (prj && prj !== 'all') {
-      sql += ' WHERE project = ?';
+      sql += ' AND project = ?';
       params.push(prj);
     }
     sql += ' ORDER BY id DESC';
@@ -506,6 +537,8 @@ async function handleDashboardRequest(req, res, url) {
 
       // Reassign memories of deleted project to 'global'
       db.prepare("UPDATE memories SET project = 'global' WHERE project = ?").run(pName);
+      db.prepare("UPDATE memories SET project='global' WHERE id IN (SELECT source_id FROM memory_links WHERE relation='merge' AND parent_id IN (SELECT id FROM memories WHERE project='global')) AND id IN (SELECT id FROM memories WHERE project='global')").run();
+      db.prepare("DELETE FROM memory_links WHERE parent_id NOT IN (SELECT id FROM memories) OR source_id NOT IN (SELECT id FROM memories)").run();
       db.prepare("UPDATE work_state SET project = 'global' WHERE project = ?").run(pName);
       db.prepare('DELETE FROM projects WHERE name = ?').run(pName);
 
@@ -527,16 +560,18 @@ async function handleDashboardRequest(req, res, url) {
     const category = url.searchParams.get('category');
     const project = url.searchParams.get('project') || getActiveProject();
     const scopeAll = url.searchParams.get('all_projects') === 'true';
-    const limit = parseInt(url.searchParams.get('limit') || '50', 10);
+    const limit = Math.min(100,Math.max(1,parseInt(url.searchParams.get('limit') || '50', 10) || 50));
+    const sort = url.searchParams.get('sort') === 'oldest' ? 'ASC' : 'DESC';
 
     let rows;
     if (q) {
       const cleanQ = q.replace(/[^a-zA-Z0-9_\-\s]/g, ' ').trim();
       let sql = `
-        SELECT m.id, COALESCE(m.project, 'global') as project, m.category, m.target, m.technical_summary, m.layman_summary, m.tags, m.created_at
+        SELECT m.id, COALESCE(m.project, 'global') as project, m.category, m.target, m.technical_summary, m.layman_summary, m.tags, m.created_at, m.status, m.deleted_at, m.updated_at
         FROM memories_fts f
         JOIN memories m ON f.rowid = m.id
         WHERE memories_fts MATCH ?
+          AND m.status != 'trash'
       `;
       const params = [cleanQ];
       if (category) {
@@ -547,7 +582,7 @@ async function handleDashboardRequest(req, res, url) {
         sql += ' AND (m.project = ? OR m.project = \'global\')';
         params.push(project);
       }
-      sql += ' ORDER BY m.id DESC LIMIT ?';
+      sql += ` ORDER BY m.id ${sort} LIMIT ?`;
       params.push(limit);
       try {
         rows = db.prepare(sql).all(...params);
@@ -556,11 +591,12 @@ async function handleDashboardRequest(req, res, url) {
       }
     } else {
       let sql = `
-        SELECT id, COALESCE(project, 'global') as project, category, target, technical_summary, layman_summary, tags, created_at
+        SELECT id, COALESCE(project, 'global') as project, category, target, technical_summary, layman_summary, tags, created_at, status, deleted_at, updated_at
         FROM memories
       `;
       const where = [];
       const params = [];
+      where.push("status != 'trash'");
       if (category) {
         where.push('category = ?');
         params.push(category);
@@ -572,7 +608,7 @@ async function handleDashboardRequest(req, res, url) {
       if (where.length) {
         sql += ' WHERE ' + where.join(' AND ');
       }
-      sql += ' ORDER BY id DESC LIMIT ?';
+      sql += ` ORDER BY id ${sort} LIMIT ?`;
       params.push(limit);
       rows = db.prepare(sql).all(...params);
     }
@@ -605,8 +641,8 @@ async function handleDashboardRequest(req, res, url) {
       `).run(project);
 
       db.prepare(`
-        INSERT INTO memories (project, category, target, raw_content, technical_summary, layman_summary, tags, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO memories (project, category, target, raw_content, technical_summary, layman_summary, tags, created_at, status, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'new', ?)
       `).run(
         project,
         distilled.category,
@@ -615,23 +651,160 @@ async function handleDashboardRequest(req, res, url) {
         distilled.technical_summary,
         distilled.layman_summary,
         JSON.stringify(finalTags),
+        now,
         now
       );
 
       const lastId = db.prepare('SELECT last_insert_rowid() AS id').get().id;
-      sendJson(res, { success: true, id: lastId, project, ...distilled, tags: finalTags });
+      sendJson(res, { success: true, id: lastId, project, updated_at: now, ...distilled, tags: finalTags });
     } catch (err) {
       sendJson(res, { error: err.message }, 500);
     }
     return;
   }
 
-  // API: Delete Memory
+  if (req.method === 'GET' && pathname === '/api/review') {
+    const project=url.searchParams.get('project')||getActiveProject();
+    const scopeAll=url.searchParams.get('all_projects')==='true';
+    const rows=scopeAll?db.prepare("SELECT id,project,category,target,technical_summary,layman_summary,tags,created_at,updated_at,status FROM memories WHERE status='new' ORDER BY id DESC LIMIT 100").all():db.prepare("SELECT id,project,category,target,technical_summary,layman_summary,tags,created_at,updated_at,status FROM memories WHERE status='new' AND (project=? OR project='global') ORDER BY id DESC LIMIT 100").all(project);
+    const approved=scopeAll?db.prepare("SELECT id,project,technical_summary FROM memories WHERE status!='trash'").all():db.prepare("SELECT id,project,technical_summary FROM memories WHERE status!='trash' AND (project=? OR project='global')").all(project);
+    const exactDuplicate=m=>approved.find(a=>a.id!==m.id&&a.project===m.project&&String(a.technical_summary||'').trim().toLowerCase()===String(m.technical_summary||'').trim().toLowerCase())||null;
+    const duplicateRows=rows.map(m=>({...m,duplicate_of:exactDuplicate(m)})).filter(m=>m.duplicate_of);
+    const newRows=rows.filter(m=>!exactDuplicate(m));
+    sendJson(res,{new_memories:newRows,duplicates:duplicateRows,needs_confirmation:[],counts:{new:newRows.length,duplicates:duplicateRows.length,needs_confirmation:0}});
+    return;
+  }
+
+  if (req.method === 'GET' && pathname === '/api/trash') {
+    const purgeExpired = db.prepare("DELETE FROM memories WHERE status = 'trash' AND deleted_at IS NOT NULL AND julianday(deleted_at) <= julianday('now', '-30 days')").run();
+    if (purgeExpired.changes) db.prepare("DELETE FROM memory_links WHERE parent_id NOT IN (SELECT id FROM memories) OR source_id NOT IN (SELECT id FROM memories)").run();
+    const rows = db.prepare("SELECT id, project, category, target, technical_summary, layman_summary, tags, created_at, deleted_at FROM memories WHERE status = 'trash' ORDER BY deleted_at DESC").all();
+    sendJson(res,{memories:rows.map(r=>({...r,tags:JSON.parse(r.tags||'[]')}))});
+    return;
+  }
+  if (req.method === 'POST' && pathname === '/api/trash/empty') {
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      const result = db.prepare("DELETE FROM memories WHERE status = 'trash'").run();
+      db.prepare("DELETE FROM memory_links WHERE parent_id NOT IN (SELECT id FROM memories) OR source_id NOT IN (SELECT id FROM memories)").run();
+      db.exec('COMMIT');
+      sendJson(res, { success: true, purged: result.changes });
+    } catch (err) { db.exec('ROLLBACK'); throw err; }
+    return;
+  }
+
+  if (req.method === 'POST' && pathname === '/api/review/global-promotion') {
+    const body=await parseJsonBody(req), ids=Array.isArray(body.source_ids)?[...new Set(body.source_ids.map(Number))]:[];
+    const summary=typeof body.technical_summary==='string'?body.technical_summary.trim():'';
+    if(ids.length<2||ids.length>20||ids.some(id=>!Number.isSafeInteger(id)||id<=0)||!summary||summary.length>20000)return sendJson(res,{error:'At least two valid sources and a summary are required'},400);
+    const sources=db.prepare(`SELECT id,project,status FROM memories WHERE id IN (${ids.map(()=>'?').join(',')}) AND status!='trash'`).all(...ids);
+    if(sources.length!==ids.length||new Set(sources.map(s=>s.project)).size<2)return sendJson(res,{error:'Sources must exist in at least two projects'},409);
+    const now=new Date().toISOString();
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      const saved=db.prepare("INSERT INTO memories(project,category,target,raw_content,technical_summary,layman_summary,tags,created_at,status,updated_at) VALUES('global','decision','global promotion',? ,?,?,'[]',?,'new',?)").run(summary,summary,summary,now,now);
+      const id=Number(saved.lastInsertRowid);
+      for(const source of sources)db.prepare("INSERT INTO memory_links(parent_id,source_id,relation,created_at) VALUES(?,?,?,?)").run(id,source.id,'promotion',now);
+      db.exec('COMMIT');sendJson(res,{success:true,id,source_ids:ids,project:'global',status:'new'});
+    } catch(err){db.exec('ROLLBACK');throw err;}
+    return;
+  }
+
+  if (req.method === 'POST' && pathname.startsWith('/api/memories/') && pathname.endsWith('/approve')) {
+    const id = Number(pathname.split('/')[3]);
+    if (!Number.isSafeInteger(id) || id <= 0) return sendJson(res, { error: 'Invalid ID' }, 400);
+    const memory=db.prepare("SELECT project,status FROM memories WHERE id=? AND status!='trash'").get(id);
+    if(!memory)return sendJson(res,{error:'Memory not found'},404);
+    if(memory.project==='global'&&db.prepare("SELECT 1 FROM memory_links WHERE parent_id=? AND relation='promotion'").get(id)&&url.searchParams.get('confirm')!=='true')return sendJson(res,{error:'Global promotion requires explicit confirmation',confirmation_required:true},409);
+    db.prepare("UPDATE memories SET status = 'approved', deleted_at = NULL WHERE id = ? AND status != 'trash'").run(id);
+    sendJson(res, { success: true, id, status: 'approved' });
+    return;
+  }
+
+  if (req.method === 'PATCH' && pathname.startsWith('/api/memories/') && pathname.endsWith('/edit')) {
+    const id = Number(pathname.split('/')[3]);
+    if (!Number.isSafeInteger(id) || id <= 0) return sendJson(res, { error: 'Invalid ID' }, 400);
+    const body = await parseJsonBody(req);
+    const summary = typeof body.technical_summary === 'string' ? body.technical_summary.trim() : '';
+    if (!summary || summary.length > 20000) return sendJson(res, { error: 'A non-empty summary under 20,000 characters is required' }, 400);
+      const expectedUpdatedAt = body.expected_updated_at;
+    if (!expectedUpdatedAt || typeof expectedUpdatedAt !== 'string') return sendJson(res, { error: 'expected_updated_at is required' }, 400);
+    const now = new Date().toISOString();
+      const current = db.prepare('SELECT technical_summary,updated_at,created_at,project FROM memories WHERE id = ? AND status != \'trash\'').get(id);
+      if (!current) return sendJson(res, { error: 'Memory not found' }, 404);
+      if ((current.updated_at || current.created_at || '') !== expectedUpdatedAt) {
+        const latest = db.prepare('SELECT id,technical_summary,updated_at,created_at FROM memories WHERE id=?').get(id);
+        return sendJson(res,{error:'Edit conflict',latest},409);
+      }
+      const result = db.prepare("UPDATE memories SET technical_summary=?,updated_at=? WHERE id=? AND status!='trash' AND COALESCE(updated_at,created_at)=?").run(summary,now,id,expectedUpdatedAt);
+      if (!result.changes) return sendJson(res,{error:'Edit conflict',latest:db.prepare('SELECT id,technical_summary,updated_at,created_at FROM memories WHERE id=?').get(id)},409);
+    sendJson(res, { success: true, id, technical_summary: summary, updated_at: now });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname.startsWith('/api/memories/') && pathname.endsWith('/merge')) {
+    const id = Number(pathname.split('/')[3]);
+    if (!Number.isSafeInteger(id) || id <= 0) return sendJson(res, { error: 'Invalid ID' }, 400);
+    const body = await parseJsonBody(req);
+    const sourceId = Number(body.source_id);
+    const expected = body.expected_updated_at;
+    if (!Number.isSafeInteger(sourceId) || sourceId <= 0 || sourceId === id) return sendJson(res, { error: 'Invalid source ID' }, 400);
+    if (!expected || typeof expected !== 'string') return sendJson(res,{error:'expected_updated_at is required'},400);
+    const kept = db.prepare("SELECT id, project, status, updated_at, created_at FROM memories WHERE id = ? AND status != 'trash'").get(id);
+    const source = db.prepare("SELECT id, project, status FROM memories WHERE id = ? AND status != 'trash'").get(sourceId);
+    if (!kept || !source) return sendJson(res, { error: 'Memory not found' }, 404);
+    if (kept.project !== source.project) return sendJson(res, { error: 'Cross-project merge is not supported' }, 409);
+    if ((kept.updated_at || kept.created_at || '') !== expected) return sendJson(res,{error:'Edit conflict',latest:{id:kept.id,updated_at:kept.updated_at,created_at:kept.created_at}},409);
+    const now = new Date().toISOString();
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      db.prepare("UPDATE memories SET status = 'approved', deleted_at = NULL WHERE id = ?").run(id);
+      db.prepare("UPDATE memories SET status = 'trash', deleted_at = ? WHERE id = ?").run(now, sourceId);
+      db.prepare("INSERT OR IGNORE INTO memory_links(parent_id,source_id,relation,created_at) VALUES(?,?,?,?)").run(id,sourceId,'merge',now);
+      db.exec('COMMIT');
+    } catch (err) {
+      db.exec('ROLLBACK');
+      throw err;
+    }
+    sendJson(res, { success: true, kept: id, source_trashed: sourceId, retention_days: 30 });
+    return;
+  }
+
+  if (req.method === 'POST' && pathname.startsWith('/api/memories/') && pathname.endsWith('/restore')) {
+    const id = Number(pathname.split('/')[3]);
+    if (!Number.isSafeInteger(id) || id <= 0) return sendJson(res, { error: 'Invalid ID' }, 400);
+    const sourceProject = db.prepare("SELECT project FROM memories WHERE id=? AND status='trash'").get(id)?.project;
+    const availableProject = sourceProject && db.prepare('SELECT 1 FROM projects WHERE name=?').get(sourceProject);
+    const now = new Date().toISOString();
+    const restoredProject = availableProject ? sourceProject : 'global';
+    const result = db.prepare("UPDATE memories SET status='approved', deleted_at=NULL, project=?, updated_at=? WHERE id=? AND status='trash'").run(restoredProject,now,id);
+    if (result.changes) {
+      const parents = db.prepare("SELECT parent_id FROM memory_links WHERE source_id=? AND relation='merge'").all(id);
+      if (parents.length) db.prepare("UPDATE memories SET project=? WHERE id=?").run(restoredProject,id);
+    }
+    sendJson(res, { success: true, id, status: 'approved', project: restoredProject, assignment_restored: Boolean(availableProject) });
+    return;
+  }
+
+  if (req.method === 'DELETE' && pathname.startsWith('/api/trash/')) {
+    const id = Number(pathname.split('/').pop());
+    if (!Number.isSafeInteger(id) || id <= 0) return sendJson(res, { error: 'Invalid ID' }, 400);
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      const result = db.prepare("DELETE FROM memories WHERE id=? AND status='trash'").run(id);
+      db.prepare('DELETE FROM memory_links WHERE parent_id=? OR source_id=?').run(id,id);
+      db.exec('COMMIT');
+      sendJson(res, { success:true, purged:result.changes ? id : null });
+    } catch (err) { db.exec('ROLLBACK'); throw err; }
+    return;
+  }
+
+  // API: Move Memory to 30-day Trash
   if (req.method === 'DELETE' && pathname.startsWith('/api/memories/')) {
     const id = parseInt(pathname.split('/').pop(), 10);
     if (id) {
-      db.prepare('DELETE FROM memories WHERE id = ?').run(id);
-      sendJson(res, { success: true, deleted: id });
+      db.prepare("UPDATE memories SET status = 'trash', deleted_at = ? WHERE id = ? AND status != 'trash'").run(new Date().toISOString(), id);
+      sendJson(res, { success: true, trashed: id, retention_days: 30 });
     } else {
       sendJson(res, { error: 'Invalid ID' }, 400);
     }
@@ -738,4 +911,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { startServer, getActiveProject, setActiveProject, cleanProject, getSetting, setSetting };
+module.exports = { startServer, getActiveProject, setActiveProject, cleanProject, getSetting, setSetting, closeDatabase: () => db.close() };

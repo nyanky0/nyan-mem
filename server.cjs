@@ -32,6 +32,24 @@ dashboardReady.catch(e => {
 });
 
 const db = new DatabaseSync(DB_PATH);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
+  CREATE TABLE IF NOT EXISTS memory_links (parent_id INTEGER NOT NULL REFERENCES memories(id) ON DELETE CASCADE, source_id INTEGER NOT NULL REFERENCES memories(id) ON DELETE CASCADE, relation TEXT NOT NULL CHECK(relation IN ('merge','promotion')), created_at TEXT NOT NULL, PRIMARY KEY(parent_id,source_id,relation), CHECK(parent_id!=source_id));
+`);
+const hasColumn = (table, column) => db.prepare(`PRAGMA table_info(${table})`).all().some(row => row.name === column);
+if (!hasColumn('memories','status')) db.exec("ALTER TABLE memories ADD COLUMN status TEXT NOT NULL DEFAULT 'approved'");
+if (!hasColumn('memories','deleted_at')) db.exec("ALTER TABLE memories ADD COLUMN deleted_at TEXT DEFAULT NULL");
+if (!hasColumn('memories','updated_at')) db.exec("ALTER TABLE memories ADD COLUMN updated_at TEXT DEFAULT NULL");
+db.exec(`
+  CREATE TRIGGER IF NOT EXISTS memories_ai AFTER INSERT ON memories BEGIN INSERT INTO memories_fts(rowid,project,technical_summary,layman_summary,raw_content,tags) VALUES(new.id,new.project,new.technical_summary,new.layman_summary,new.raw_content,new.tags); END;
+  CREATE TRIGGER IF NOT EXISTS memories_ad AFTER DELETE ON memories BEGIN INSERT INTO memories_fts(memories_fts,rowid,project,technical_summary,layman_summary,raw_content,tags) VALUES('delete',old.id,old.project,old.technical_summary,old.layman_summary,old.raw_content,old.tags); END;
+  CREATE TRIGGER IF NOT EXISTS memories_au AFTER UPDATE ON memories BEGIN INSERT INTO memories_fts(memories_fts,rowid,project,technical_summary,layman_summary,raw_content,tags) VALUES('delete',old.id,old.project,old.technical_summary,old.layman_summary,old.raw_content,old.tags); INSERT INTO memories_fts(rowid,project,technical_summary,layman_summary,raw_content,tags) VALUES(new.id,new.project,new.technical_summary,new.layman_summary,new.raw_content,new.tags); END;
+`);
+if (!db.prepare('SELECT 1 FROM schema_migrations WHERE version=3').get()) {
+  db.exec('BEGIN IMMEDIATE');
+  try { db.exec("INSERT INTO memories_fts(memories_fts) VALUES('rebuild')"); db.prepare('INSERT INTO schema_migrations(version,applied_at) VALUES(3,?)').run(new Date().toISOString()); db.exec('COMMIT'); }
+  catch (err) { db.exec('ROLLBACK'); throw err; }
+}
 
 // Anti-slop prompt & call to OmniRoute
 async function processWithOmniRoute(rawContent, target, userCategory, project) {
@@ -241,9 +259,9 @@ async function handleToolCall(name, args) {
 
     // Briefing
     const recent = db.prepare(`
-      SELECT id, category, target, technical_summary, layman_summary, tags, created_at
+      SELECT id, category, target, technical_summary, layman_summary, tags, created_at, status, updated_at
       FROM memories
-      WHERE project = ?
+      WHERE (project = ? OR project = 'global') AND status != 'trash'
       ORDER BY id DESC LIMIT 3
     `).all(targetProject);
 
@@ -301,8 +319,8 @@ async function handleToolCall(name, args) {
     `).run(project);
 
     const stmt = db.prepare(`
-      INSERT INTO memories (project, category, target, raw_content, technical_summary, layman_summary, tags, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO memories (project, category, target, raw_content, technical_summary, layman_summary, tags, created_at, status, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'new', ?)
     `);
 
     stmt.run(
@@ -313,6 +331,7 @@ async function handleToolCall(name, args) {
       distilled.technical_summary,
       distilled.layman_summary,
       JSON.stringify(finalTags),
+      now,
       now
     );
 
@@ -344,10 +363,10 @@ async function handleToolCall(name, args) {
     if (!cleanQuery) return { results: [] };
 
     let sql = `
-      SELECT m.id, COALESCE(m.project, 'global') as project, m.category, m.target, m.technical_summary, m.layman_summary, m.tags, m.created_at
+      SELECT m.id, COALESCE(m.project, 'global') as project, m.category, m.target, m.technical_summary, m.layman_summary, m.tags, m.created_at, m.updated_at
       FROM memories_fts f
       JOIN memories m ON f.rowid = m.id
-      WHERE memories_fts MATCH ?
+      WHERE memories_fts MATCH ? AND m.status != 'trash'
     `;
     const params = [cleanQuery];
 
@@ -383,11 +402,11 @@ async function handleToolCall(name, args) {
     const active = getActiveProject();
     const project = args.project ? cleanProject(args.project) : active;
 
-    let sql = 'SELECT id, COALESCE(project, \'global\') as project, category, target, technical_summary, layman_summary, tags, created_at FROM memories';
+    let sql = 'SELECT id, COALESCE(project, \'global\') as project, category, target, technical_summary, layman_summary, tags, created_at, updated_at FROM memories WHERE status != \'trash\'';
     const params = [];
 
     if (project && project !== 'all') {
-      sql += ' WHERE (project = ? OR project = \'global\')';
+      sql += ' AND (project = ? OR project = \'global\')';
       params.push(project);
     }
     sql += ' ORDER BY id DESC LIMIT ?';

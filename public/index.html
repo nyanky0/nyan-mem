@@ -16,96 +16,170 @@
       --transition-spring: 0.25s var(--ease-spring);
     }
 
-    /* Light Mode Palette */
+    /* Signal Garden (light) / Carbon Ledger (dark): the two paired nyan-mem themes. */
     :root, [data-theme="light"] {
-      --bg: #F8F9FA;
+      color-scheme: light;
+      --bg: #F0F3ED;
       --surface: #FFFFFF;
-      --surface-subtle: #F1F3F5;
-      --surface-hover: #E9ECEF;
-      --border: #DEE2E6;
-      --border-subtle: #E9ECEF;
-      --text-primary: #1A1A1A;
-      --text-secondary: #4A4A4A;
-      --text-muted: #71717A;
-      --accent: #5B45A8;
-      --accent-subtle: #EDE9FE;
+      --surface-subtle: #E4EBE3;
+      --surface-hover: #D9E4D9;
+      --border: #D2DAD0;
+      --border-subtle: #E4E9E1;
+      --text-primary: #28312A;
+      --text-secondary: #4A554A;
+      --text-muted: #697568;
+      --accent: #617C4D;
+      --accent-subtle: #E4EBE3;
       --accent-text: #FFFFFF;
-      --mint: #15803D;
-      --mint-bg: #DCFCE7;
-      --coral: #B91C1C;
-      --coral-bg: #FEE2E2;
-      --peach: #B45309;
-      --peach-bg: #FEF3C7;
-      --lavender: #4338CA;
-      --lavender-bg: #EEF2FF;
-      --box-tech-bg: #F8FAFC;
-      --box-tech-border: #E2E8F0;
-      --box-layman-bg: #FAF5FF;
-      --box-layman-border: #F3E8FF;
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-      --shadow-modal: 0 20px 40px rgba(0, 0, 0, 0.15);
+      --mint: #3D7451;
+      --mint-bg: #E4F1E7;
+      --coral: #A83E36;
+      --coral-bg: #F8E5E1;
+      --peach: #865D19;
+      --peach-bg: #F5EEDB;
+      --lavender: #556A57;
+      --lavender-bg: #E8EEE7;
+      --box-tech-bg: #F5F7F3;
+      --box-tech-border: #E1E7DE;
+      --box-layman-bg: #EDF3EC;
+      --box-layman-border: #DDE7DA;
+      --shadow-sm: 0 1px 2px rgba(40, 49, 42, 0.06);
+      --shadow-modal: 0 20px 40px rgba(28, 42, 32, 0.2);
     }
 
-    /* Dark Mode Palette (System Default or Manual) */
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) {
-        --bg: #121016;
-        --surface: #1B1822;
-        --surface-subtle: #231F2C;
-        --surface-hover: #2D2838;
-        --border: #332E3F;
-        --border-subtle: #262230;
-        --text-primary: #F4F2F7;
-        --text-secondary: #B8B2C4;
-        --text-muted: #7E788B;
-        --accent: #B8A1E3;
-        --accent-subtle: #2A233A;
-        --accent-text: #181520;
-        --mint: #86EFAC;
-        --mint-bg: #143522;
-        --coral: #FCA5A5;
-        --coral-bg: #3E1B21;
-        --peach: #FDE68A;
-        --peach-bg: #3B2A14;
-        --lavender: #C7D2FE;
-        --lavender-bg: #1E1E38;
-        --box-tech-bg: #14121A;
-        --box-tech-border: #282333;
-        --box-layman-bg: #1A1724;
-        --box-layman-border: #332C42;
+        color-scheme: dark;
+        --bg: #171B19;
+        --surface: #202623;
+        --surface-subtle: #252D29;
+        --surface-hover: #303B35;
+        --border: #35403A;
+        --border-subtle: #2A332E;
+        --text-primary: #E7ECE8;
+        --text-secondary: #B7C1B9;
+        --text-muted: #8F9C92;
+        --accent: #85C99B;
+        --accent-subtle: #25362C;
+        --accent-text: #152018;
+        --mint: #9AE2AD;
+        --mint-bg: #243A2B;
+        --coral: #F2A098;
+        --coral-bg: #482A28;
+        --peach: #EACB85;
+        --peach-bg: #3F3523;
+        --lavender: #A7D0AE;
+        --lavender-bg: #27372C;
+        --box-tech-bg: #1C211E;
+        --box-tech-border: #303A33;
+        --box-layman-bg: #202A23;
+        --box-layman-border: #354538;
         --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
         --shadow-modal: 0 25px 50px rgba(0, 0, 0, 0.6);
       }
     }
 
-    /* Explicit Dark Mode Override */
+    [data-theme="light"] { color-scheme: light; }
     [data-theme="dark"] {
-      --bg: #121016;
-      --surface: #1B1822;
-      --surface-subtle: #231F2C;
-      --surface-hover: #2D2838;
-      --border: #332E3F;
-      --border-subtle: #262230;
-      --text-primary: #F4F2F7;
-      --text-secondary: #B8B2C4;
-      --text-muted: #7E788B;
-      --accent: #B8A1E3;
-      --accent-subtle: #2A233A;
-      --accent-text: #181520;
-      --mint: #86EFAC;
-      --mint-bg: #143522;
-      --coral: #FCA5A5;
-      --coral-bg: #3E1B21;
-      --peach: #FDE68A;
-      --peach-bg: #3B2A14;
-      --lavender: #C7D2FE;
-      --lavender-bg: #1E1E38;
-      --box-tech-bg: #14121A;
-      --box-tech-border: #282333;
-      --box-layman-bg: #1A1724;
-      --box-layman-border: #332C42;
+      color-scheme: dark;
+      --bg: #171B19;
+      --surface: #202623;
+      --surface-subtle: #252D29;
+      --surface-hover: #303B35;
+      --border: #35403A;
+      --border-subtle: #2A332E;
+      --text-primary: #E7ECE8;
+      --text-secondary: #B7C1B9;
+      --text-muted: #8F9C92;
+      --accent: #85C99B;
+      --accent-subtle: #25362C;
+      --accent-text: #152018;
+      --mint: #9AE2AD;
+      --mint-bg: #243A2B;
+      --coral: #F2A098;
+      --coral-bg: #482A28;
+      --peach: #EACB85;
+      --peach-bg: #3F3523;
+      --lavender: #A7D0AE;
+      --lavender-bg: #27372C;
+      --box-tech-bg: #1C211E;
+      --box-tech-border: #303A33;
+      --box-layman-bg: #202A23;
+      --box-layman-border: #354538;
       --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
       --shadow-modal: 0 25px 50px rgba(0, 0, 0, 0.6);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font);
+      min-height: 100vh;
+      padding: 28px clamp(16px, 3vw, 44px);
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    header {
+      border-bottom-color: var(--border-subtle);
+      padding-bottom: 24px;
+      margin-bottom: 26px;
+    }
+
+    .brand-icon {
+      background: var(--surface);
+      border-color: var(--border-subtle);
+      color: var(--text-primary);
+    }
+
+    .brand-icon::before { content: '◉'; }
+    .brand-icon { font-size: 0; }
+    .brand-icon::before { font-size: 25px; }
+    [data-theme="dark"] .brand-icon::before { color: #fff; }
+
+    .brand-title { font-size: 22px; letter-spacing: -0.035em; }
+    .brand-sub { margin-top: 3px; }
+
+    .project-bar, .stat-card, .memory-card, .todo-card {
+      border-color: var(--border-subtle);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .project-bar { background: var(--surface); }
+
+    .stats-bar {
+      gap: 12px;
+      margin: 20px 0 24px;
+    }
+
+    .stat-card {
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+    }
+
+    .nav-tabs { border-bottom-color: var(--border); }
+    .nav-tab { padding: 12px 16px; }
+
+    .toolbar { gap: 10px; }
+    .search-input, .form-input, .form-textarea, .form-select {
+      border-color: var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    .btn { border-radius: var(--radius-md); }
+    .btn-primary { box-shadow: 0 2px 6px color-mix(in srgb, var(--accent) 20%, transparent); }
+
+    @media (max-width: 640px) {
+      body { padding: 16px 12px; }
+      header { align-items: flex-start; }
+      .brand { gap: 10px; }
+      .brand-title { font-size: 19px; }
+      .stats-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -971,29 +1045,31 @@
     <!-- Header -->
     <header>
       <div class="brand">
-        <div class="brand-icon">🐾</div>
+        <div class="brand-icon" aria-hidden="true">◉</div>
         <div>
-          <h1 class="brand-title">nyan-mem Dashboard 🎀</h1>
-          <p class="brand-sub">Project-Scoped Engineering Memory &bull; Anti-Slop Dual Distillation</p>
+          <h1 class="brand-title">nyan-mem</h1>
+          <p class="brand-sub">Project-scoped memory for AI agents</p>
         </div>
       </div>
       <div class="header-actions">
-        <!-- Theme Toggle -->
-        <div class="theme-toggle-group">
-          <button class="theme-btn active" id="theme-system-btn" onclick="setTheme('system')">🖥️ Auto</button>
-          <button class="theme-btn" id="theme-dark-btn" onclick="setTheme('dark')">🌙 Gelap</button>
-          <button class="theme-btn" id="theme-light-btn" onclick="setTheme('light')">☀️ Terang</button>
+        <div class="theme-toggle-group" aria-label="Theme">
+          <button class="theme-btn active" id="theme-system-btn" onclick="setTheme('system')" aria-label="System theme" title="System" aria-pressed="true"><span aria-hidden="true">🖥</span></button>
+          <button class="theme-btn" id="theme-dark-btn" onclick="setTheme('dark')" aria-label="Dark theme" title="Dark" aria-pressed="false"><span aria-hidden="true">🌙</span></button>
+          <button class="theme-btn" id="theme-light-btn" onclick="setTheme('light')" aria-label="Light theme" title="Light" aria-pressed="false"><span aria-hidden="true">☀️</span></button>
         </div>
-        <button class="btn" onclick="openSettingsModal()">⚙️ Pengaturan</button>
-        <button class="btn" onclick="openNewProjectModal()">📁 + Proyek</button>
-        <button class="btn btn-primary" onclick="openModal()">+ Catat Memori</button>
+        <button class="btn" id="language-toggle" onclick="setLanguage(language === 'id' ? 'en' : 'id')">EN</button>
+        <button class="btn" id="agent-setup-button" onclick="openAgentSetup()">Agent setup</button>
+        <button class="btn" id="settings-button" onclick="openSettingsModal()">Settings</button>
+        <button class="btn" id="project-button" onclick="openNewProjectModal()">+ Project</button>
+        <button class="btn btn-primary" id="write-button" onclick="openModal()">+ Write memory</button>
+        <span id="database-health" role="status" aria-live="polite" style="font-size:11px;color:var(--text-muted)">Connection status is not verified.</span>
       </div>
     </header>
 
     <!-- Project Selector Bar -->
     <div class="project-bar">
       <div class="project-bar-left">
-        <div class="project-bar-label">📁 Proyek:</div>
+        <div class="project-bar-label">Project:</div>
         <div class="project-pills" id="project-container">
           <!-- Dynamically populated -->
         </div>
@@ -1029,6 +1105,8 @@
     <!-- Navigation Tabs -->
     <div class="nav-tabs">
       <button class="nav-tab active" id="tab-memories" onclick="switchTab('memories')">🧠 Catatan & Observasi</button>
+      <button class="nav-tab" id="tab-review" onclick="switchTab('review')">Review<span id="nav-review-count"></span></button>
+      <button class="nav-tab" id="tab-trash" onclick="switchTab('trash')">Trash</button>
       <button class="nav-tab" id="tab-todo" onclick="switchTab('todo')">📋 To-Do & Work State</button>
     </div>
 
@@ -1036,6 +1114,10 @@
     <div id="view-memories-section">
       <div class="toolbar">
         <input type="text" id="search-box" class="search-input" placeholder="🔍 Cari ingatan (FTS5 BM25 search)..." oninput="onSearchInput()">
+        <select id="page-size" class="form-input" aria-label="Page size" onchange="fetchMemories()"><option>10</option><option>25</option><option selected>50</option><option>100</option></select>
+        <select id="memory-sort" class="form-input" aria-label="Sort order" onchange="fetchMemories()"><option value="newest">Newest</option><option value="oldest">Oldest</option></select>
+        <button class="btn" aria-label="Clear search query" onclick="document.getElementById('search-box').value='';fetchMemories()">×</button>
+        <button class="btn" id="clear-filters" style="display:none" onclick="clearMemoryFilters()">Clear filters</button>
         <div class="filter-pills" id="filter-container">
           <div class="pill active" onclick="setFilter('')">Semua</div>
           <div class="pill" onclick="setFilter('config')">Config</div>
@@ -1066,9 +1148,33 @@
         <!-- Rendered by JS -->
       </div>
     </div>
+    <div id="view-review-section" style="display: none;">
+      <div id="review-banner" class="empty-state" style="display:none;padding:10px 14px;margin-bottom:12px;border-left:3px solid var(--accent);text-align:left"></div>
+      <div class="nav-tabs" role="tablist" aria-label="Review categories">
+        <button class="nav-tab active" id="review-tab-new" onclick="switchReview('new')">New Memories <span id="review-count-new"></span></button>
+        <button class="nav-tab" id="review-tab-duplicates" onclick="switchReview('duplicates')">Possible Duplicates <span id="review-count-duplicates"></span></button>
+        <button class="nav-tab" id="review-tab-confirm" onclick="switchReview('confirm')">Needs Confirmation</button>
+      </div>
+      <div class="cards-list" id="review-container"></div>
+    </div>
+    <div id="view-trash-section" style="display: none;">
+      <div id="trash-toolbar" style="display:none;justify-content:flex-end;margin-bottom:12px"><button class="btn-delete" onclick="emptyTrash()">Empty Trash</button></div>
+      <div class="cards-list" id="trash-container"></div>
+    </div>
   </div>
 
-  <!-- Modal Tambah Memori -->
+  <div class="modal-overlay" id="modal-agent-setup">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="agent-setup-title">
+      <div class="modal-header"><div class="modal-title" id="agent-setup-title">Agent connection setup</div><button class="modal-close" onclick="closeAgentSetup()">&times;</button></div>
+      <p>Review connection instructions; no agent config changes happen automatically.</p>
+      <ol><li>Verify MCP server health.</li><li>Copy the endpoint URL into your agent's MCP HTTP config.</li><li>Do not copy database/API secrets.</li><li>Reload the agent and verify tools.</li></ol>
+      <label class="form-label" for="agent-endpoint">MCP endpoint</label>
+      <input class="form-input" id="agent-endpoint" readonly value="http://127.0.0.1:37788/mcp">
+      <button class="btn" onclick="copyAgentEndpoint()">Copy endpoint</button>
+      <button class="btn btn-primary" onclick="verifyAgentHealth()">Verify server health</button>
+      <div id="agent-health-result" role="status" aria-live="polite"></div>
+    </div>
+  </div>
   <div class="modal-overlay" id="modal-add">
     <div class="modal-box">
       <div class="modal-header">
@@ -1334,7 +1440,9 @@
       </div>
 
       <!-- Raw View -->
-      <div id="preview-md-raw" class="md-preview-container" style="display: none;">
+      <div id="review-toolbar" class="toolbar">
+        <button class="btn" id="global-promotion-button" style="display:none" onclick="globalPromote()">Promote selected to Global</button>
+      </div>
         <!-- Raw Text -->
       </div>
 
@@ -1352,24 +1460,29 @@
     let activeProject = 'all';
     let activeFilter = '';
     let activeViewMode = 'side';
+    let activeReview = 'new';
+    let language = localStorage.getItem('nyan-language') || 'en';
     let searchTimeout = null;
 
     // Theme Management (System default, manual dark/light override)
     function initTheme() {
-      const savedTheme = localStorage.getItem('nyan-theme') || 'system';
-      applyTheme(savedTheme);
+      const savedTheme = localStorage.getItem('nyan-theme');
+      applyTheme(savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : 'system');
     }
 
     function setTheme(theme) {
-      localStorage.setItem('nyan-theme', theme);
-      applyTheme(theme);
+      const next = ['system','dark','light'].includes(theme) ? theme : 'system';
+      localStorage.setItem('nyan-theme', next);
+      applyTheme(next);
     }
 
     function applyTheme(theme) {
-      document.getElementById('theme-system-btn').classList.toggle('active', theme === 'system');
-      document.getElementById('theme-dark-btn').classList.toggle('active', theme === 'dark');
-      document.getElementById('theme-light-btn').classList.toggle('active', theme === 'light');
-
+      const modes = [['system','theme-system-btn'],['dark','theme-dark-btn'],['light','theme-light-btn']];
+      for (const [mode,id] of modes) {
+        const button = document.getElementById(id);
+        button.classList.toggle('active', theme === mode);
+        button.setAttribute('aria-pressed', String(theme === mode));
+      }
       if (theme === 'system') {
         document.documentElement.removeAttribute('data-theme');
       } else {
@@ -1377,16 +1490,66 @@
       }
     }
 
+    function openAgentSetup() { document.getElementById('agent-endpoint').value = location.origin + '/mcp'; document.getElementById('modal-agent-setup').classList.add('open'); verifyAgentHealth(); }
+    function closeAgentSetup() { document.getElementById('modal-agent-setup').classList.remove('open'); }
+    async function copyAgentEndpoint() { await navigator.clipboard.writeText(document.getElementById('agent-endpoint').value); }
+    async function verifyAgentHealth() {
+      const output = document.getElementById('agent-health-result');
+      output.textContent = 'Checking…';
+      try { const r = await fetch('/healthz'); const d = await r.json(); output.textContent = r.ok && d.status === 'ok' ? 'Server responds healthy. Agent reload and tool discovery remain unverified.' : 'Health check failed.'; }
+      catch { output.textContent = 'Health check failed; check that the MCP server is running.'; }
+    }
+
+    function setLanguage(value) {
+      language = value === 'en' ? 'en' : 'id';
+      localStorage.setItem('nyan-language', language);
+      document.documentElement.lang = language;
+      document.getElementById('language-toggle').textContent = language === 'id' ? 'EN' : 'ID';
+      const en = language === 'en';
+      document.querySelector('.project-bar-label').textContent=en?'Project:':'Proyek:';
+      document.querySelector('.cross-toggle').lastChild.textContent=en?' Search all projects':' Cari lintas proyek';
+      const text = en ? {mem:'Memories',review:'Review',trash:'Trash',todo:'To-do & Work State',search:'Search memories',all:'All',config:'Config',bug:'Bugfix',feature:'Feature',decision:'Decision',side:'Side by side',engineer:'Engineer',layman:'Plain language',project:'Project:',cross:'Search all projects',write:'Write memory',settings:'Settings'} : {mem:'Catatan & Observasi',review:'Review',trash:'Trash',todo:'To-Do & Work State',search:'Cari ingatan',all:'Semua',config:'Config',bug:'Bugfix',feature:'Feature',decision:'Decision',side:'Berdampingan',engineer:'AI/Engineer',layman:'Orang Awam',project:'Proyek:',cross:'Cari lintas proyek',write:'Tulis memori',settings:'Pengaturan'};
+      document.getElementById('tab-memories').textContent=text.mem;
+      document.getElementById('tab-review').firstChild.textContent=text.review;
+      document.getElementById('tab-trash').textContent=text.trash;
+      document.getElementById('tab-todo').textContent=text.todo;
+      document.getElementById('agent-setup-button').textContent=en?'Agent setup':'Atur agent';
+      document.getElementById('settings-button').textContent=en?'Settings':'Pengaturan';
+      document.getElementById('project-button').textContent=en?'+ Project':'+ Proyek';
+      document.getElementById('write-button').textContent=en?'+ Write memory':'+ Tulis memori';
+      document.getElementById('search-box').placeholder=text.search;
+      const pills=document.querySelectorAll('#filter-container .pill');
+      [text.all,text.config,text.bug,text.feature,text.decision].forEach((v,i)=>{if(pills[i])pills[i].textContent=v});
+      document.getElementById('btn-side').textContent=text.side;
+      document.getElementById('btn-tech').textContent=text.engineer;
+      document.getElementById('btn-layman').textContent=text.layman;
+      document.querySelector('.project-bar-label').textContent=text.project;
+      if (language === 'id') {
+        document.getElementById('review-tab-new').childNodes[0].textContent='Memori Baru ';
+        document.getElementById('review-tab-duplicates').childNodes[0].textContent='Kemungkinan Duplikat ';
+        document.getElementById('review-tab-confirm').textContent='Perlu Konfirmasi';
+      } else {
+        document.getElementById('review-tab-new').childNodes[0].textContent='New Memories ';
+        document.getElementById('review-tab-duplicates').childNodes[0].textContent='Possible Duplicates ';
+        document.getElementById('review-tab-confirm').textContent='Needs Confirmation';
+      }
+      document.getElementById('project-container').setAttribute('aria-label',text.project);
+      const dbHealth=document.getElementById('database-health');if(dbHealth)dbHealth.textContent=en?'Connection status is not verified.':'Status koneksi belum diverifikasi.';
+    }
+    function initLanguage() { setLanguage(language); }
+
     // Projects
     async function fetchProjects() {
       try {
+        const health = await fetch('/healthz');
+        document.getElementById('database-health').textContent = health.ok ? (language === 'en' ? 'MCP server healthy' : 'MCP server sehat') : (language === 'en' ? 'MCP health unavailable' : 'Status MCP tidak tersedia');
         const res = await fetch('/api/projects');
         const data = await res.json();
         const container = document.getElementById('project-container');
         
         let pillsHtml = `
           <div class="project-pill ${activeProject === 'all' ? 'active' : ''}" onclick="setProject('all')">
-            Semua Proyek
+            ${language === 'en' ? 'All Projects' : 'Semua Proyek'}
           </div>
         `;
 
@@ -1424,7 +1587,9 @@
     async function fetchMemories() {
       const q = document.getElementById('search-box').value.trim();
       const cross = document.getElementById('cross-project-toggle').checked;
-      let url = '/api/memories?limit=50';
+      let url = '/api/memories?limit=' + encodeURIComponent(document.getElementById('page-size').value);
+      const sort = document.getElementById('memory-sort').value;
+      if (sort === 'oldest') url += '&sort=oldest';
       if (q) url += '&q=' + encodeURIComponent(q);
       if (activeFilter) url += '&category=' + encodeURIComponent(activeFilter);
       if (cross) {
@@ -1436,6 +1601,7 @@
       try {
         const res = await fetch(url);
         const data = await res.json();
+        document.getElementById('clear-filters').style.display = activeFilter || document.getElementById('cross-project-toggle').checked || activeProject !== 'all' ? 'inline-flex' : 'none';
         renderCards(data.memories || []);
         updateStats();
       } catch (err) {
@@ -1464,12 +1630,8 @@
     function renderCards(list) {
       const container = document.getElementById('cards-container');
       if (!list.length) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">🍃</div>
-            <p>Belum ada memori untuk scope ini.</p>
-          </div>
-        `;
+        const hasQuery = document.getElementById('search-box').value.trim();
+        container.innerHTML = `<div class="empty-state"><p>${hasQuery ? 'No memories match' : 'Belum ada memori untuk scope ini.'}</p></div>`;
         return;
       }
 
@@ -1484,7 +1646,9 @@
         else if (cat.includes('decis')) catClass = 'cat-decision';
 
         const tags = Array.isArray(m.tags) ? m.tags : [];
-        const dateStr = m.created_at ? new Date(m.created_at).toLocaleString('id-ID') : '';
+        const statusBadge = m.status === 'new' ? '<span class="badge-cat">New</span>' : '';
+        const updatedAt = m.updated_at || m.created_at;
+        const dateStr = updatedAt ? new Date(updatedAt).toLocaleString(language === 'en' ? 'en-US' : 'id-ID') : '';
 
         return `
           <div class="card" style="--anim-idx: ${idx};">
@@ -1492,6 +1656,7 @@
               <div class="card-meta">
                 <span class="badge-project">📁 ${escapeHtml(m.project || 'global')}</span>
                 <span class="badge-cat ${catClass}">#${m.id} ${m.category}</span>
+                ${statusBadge}
                 ${m.target ? `<span class="card-target">${escapeHtml(m.target)}</span>` : ''}
               </div>
               <span class="card-date">${dateStr}</span>
@@ -1533,7 +1698,16 @@
       activeFilter = cat;
       const pills = document.querySelectorAll('#filter-container .pill');
       pills.forEach(p => p.classList.remove('active'));
-      event.target.classList.add('active');
+      const selected = [...pills].find(p => p.getAttribute('onclick') === `setFilter('${cat}')`);
+      if (selected) selected.classList.add('active');
+      fetchMemories();
+    }
+    function clearMemoryFilters() {
+      activeFilter = '';
+      activeProject = 'all';
+      document.getElementById('cross-project-toggle').checked = false;
+      const pills=document.querySelectorAll('#filter-container .pill');pills.forEach((p,i)=>p.classList.toggle('active',i===0));
+      fetchProjects();
       fetchMemories();
     }
 
@@ -2060,11 +2234,125 @@
     // Tabs
     function switchTab(tab) {
       document.getElementById('tab-memories').classList.toggle('active', tab === 'memories');
+      document.getElementById('tab-review').classList.toggle('active', tab === 'review');
+      document.getElementById('tab-trash').classList.toggle('active', tab === 'trash');
       document.getElementById('tab-todo').classList.toggle('active', tab === 'todo');
       document.getElementById('view-memories-section').style.display = tab === 'memories' ? 'block' : 'none';
+      document.getElementById('view-review-section').style.display = tab === 'review' ? 'block' : 'none';
+      document.getElementById('view-trash-section').style.display = tab === 'trash' ? 'block' : 'none';
       document.getElementById('view-todo-section').style.display = tab === 'todo' ? 'block' : 'none';
       if (tab === 'todo') fetchTodos();
+      if (tab === 'review') fetchReview();
+      if (tab === 'trash') fetchTrash();
     }
+
+    async function fetchReview() {
+      const params = new URLSearchParams({ limit: String(document.getElementById('page-size').value), status:'all' });
+      if (activeProject !== 'all') params.set('project', activeProject);
+      const res = await fetch('/api/review?' + new URLSearchParams(activeProject === 'all' ? {} : {project:activeProject}));
+      const data = await res.json();
+      const rows = [...(data.new_memories||[]),...(data.duplicates||[])];
+      const candidates = rows.filter(m => m.status === 'new');
+      for (const m of candidates) m._duplicate=m.duplicate_of;
+      const promotionButton = document.getElementById('global-promotion-button');
+      if (promotionButton) promotionButton.style.display = activeProject === 'all' && candidates.length > 1 ? 'inline-flex' : 'none';
+      const navCount = document.getElementById('nav-review-count');
+      if (navCount) navCount.textContent = candidates.length ? ` (${candidates.length})` : '';
+      const newCount = document.getElementById('review-count-new'), duplicateCount = document.getElementById('review-count-duplicates');
+      if (newCount) newCount.textContent = candidates.filter(m => !m._duplicate).length ? `(${candidates.filter(m => !m._duplicate).length})` : '';
+      if (duplicateCount) duplicateCount.textContent = candidates.filter(m => m._duplicate).length ? `(${candidates.filter(m => m._duplicate).length})` : '';
+      const matches = activeReview === 'new' ? candidates.filter(m => !m._duplicate) : activeReview === 'duplicates' ? candidates.filter(m => m._duplicate) : [];
+      const banner = document.getElementById('review-banner');
+      banner.style.display = activeReview === 'confirm' ? 'block' : 'none';
+      if (activeReview === 'confirm') banner.textContent = 'Tidak ada permintaan konfirmasi yang tercatat.';
+      renderActionCards(matches, 'review-container', 'approve');
+    }
+
+    function switchReview(section) {
+      activeReview = section;
+      for (const [key, id] of [['new','review-tab-new'],['duplicates','review-tab-duplicates'],['confirm','review-tab-confirm']]) document.getElementById(id).classList.toggle('active', section === key);
+      fetchReview();
+    }
+
+    async function fetchTrash() {
+      const res = await fetch('/api/trash');
+      const data = await res.json();
+      const list = data.memories || [];
+      const toolbar = document.getElementById('trash-toolbar');
+      toolbar.style.display = list.length ? 'flex' : 'none';
+      renderActionCards(list, 'trash-container', 'restore');
+      if (list.length) {
+        document.querySelectorAll('#trash-container .card').forEach((card, i) => {
+          const deleted = new Date(list[i].deleted_at || Date.now());
+          const daysLeft = Math.max(0, 30 - Math.floor((Date.now() - deleted.getTime()) / 86400000));
+          card.querySelector('.card-date').textContent = `Dihapus ${deleted.toLocaleDateString()} · ${daysLeft} hari tersisa`;
+        });
+      } else document.getElementById('trash-container').innerHTML = '<div class="empty-state"><p>Trash is empty</p></div>';
+    }
+
+    async function emptyTrash() {
+      const count = document.querySelectorAll('#trash-container .card').length;
+      if (!count || !confirm(`Hapus permanen ${count} item di Trash?`)) return;
+        const res=await fetch('/api/trash/empty',{method:'POST'});const data=await res.json();if(!res.ok)return alert(data.error||'Empty Trash failed.');
+      await fetchTrash();
+      alert(`${data.purged} item dihapus permanen.`);
+    }
+
+    function renderActionCards(list, containerId, action) {
+      const c = document.getElementById(containerId);
+      c.innerHTML = list.length ? list.map(m => {
+      if (action === 'restore') {
+        const deleted = new Date(m.deleted_at || m.created_at || Date.now());
+        const daysLeft = Math.max(0,30-Math.floor((Date.now()-deleted.getTime())/86400000));
+        return `<div class="card"><div class="card-header"><span class="badge-project">${escapeHtml(m.project || 'global')}</span><span class="card-date">${escapeHtml(deleted.toLocaleDateString())} · ${daysLeft} days remaining</span></div><div class="box tech-box">${escapeHtml(m.technical_summary || '')}</div><div class="card-footer"><span>#${m.id} ${escapeHtml(m.category || '')}</span><button class="btn" onclick="restoreMemory(${m.id})">Restore</button><button class="btn-delete" onclick="purgeMemory(${m.id})">Delete permanently</button></div></div>`;
+      }
+      const duplicate = action === 'approve' && m._duplicate;
+      return `<div class="card"><div class="card-header"><span class="badge-project">${escapeHtml(m.project || 'global')}</span><span class="card-date">${escapeHtml(m.created_at || '')}</span></div><div class="box tech-box">${escapeHtml(m.technical_summary || '')}</div>${duplicate ? `<div class="box layman-box"><strong>Possible duplicate of #${m._duplicate.id}</strong><p>${escapeHtml(m._duplicate.technical_summary || '')}</p></div>` : ''}<div class="card-footer"><span>#${m.id} ${escapeHtml(m.category || '')}</span>${duplicate ? `<button class="btn" onclick="keepBoth(${m.id},${m._duplicate.id})">Keep both</button><button class="btn-primary" onclick="mergeMemories(${m.id},${m._duplicate.id})">Merge</button><button class="btn-delete" onclick="deleteMemory(${m.id})">Delete new</button>` : `<button class="btn" onclick="approveMemory(${m.id})">Approve</button><button class="btn-delete" onclick="deleteMemory(${m.id})">Delete</button>`}</div></div>`;
+      }).join('') : '<div class="empty-state"><p>Tidak ada item di sini.</p></div>';
+    }
+
+    async function globalPromote() {
+      const rows=(await (await fetch('/api/review?all_projects=true')).json()).new_memories||[];
+      const ids=rows.filter(m=>m.project!=='global').slice(0,10).map(m=>m.id);
+      if(ids.length<2)return alert('Pilih minimal dua memori dari proyek berbeda.');
+      const summary=prompt('Ringkasan global:',rows.map(m=>m.technical_summary).join('\n\n'));
+      if(!summary)return;
+      const res=await fetch('/api/review/global-promotion',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source_ids:ids,technical_summary:summary})});
+      const data=await res.json();if(!res.ok)return alert(data.error||'Global promotion failed.');
+      alert(`Global memory #${data.id} dibuat sebagai New; perlu review sebelum Approve.`);fetchReview();fetchMemories();
+    }
+
+    async function mergeMemories(id, sourceId) {
+      const rows = (await (await fetch('/api/memories?all_projects=true&limit=100')).json()).memories;
+      const kept = rows.find(m => m.id === id);
+      if (!kept) return alert('Target memory changed; reload Review.');
+      if (!confirm(`Gabungkan #${sourceId} ke #${id}? Sumber dipindahkan ke Trash selama 30 hari.`)) return;
+      const res = await fetch(`/api/memories/${id}/merge`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({source_id:sourceId,expected_updated_at:kept.updated_at || kept.created_at}) });
+      const data = await res.json();
+      if (!res.ok) return alert(data.error || 'Merge gagal.');
+      fetchReview(); fetchTrash(); fetchMemories();
+    }
+
+    async function keepBoth(id, otherId) {
+      const list = await (await fetch('/api/memories?all_projects=true&limit=100')).json();
+      const first = list.memories.find(m => m.id === id), second = list.memories.find(m => m.id === otherId);
+      if (!first || !second) return alert('Memori kandidat sudah berubah. Muat ulang Review.');
+      const edit = prompt(`Perjelas alasan menyimpan memori #${id}:`, first.technical_summary || '');
+      if (!edit || !edit.trim()) return;
+      const save = async (memory, summary) => fetch(`/api/memories/${memory.id}/edit`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({technical_summary:summary.trim(),expected_updated_at:memory.updated_at || memory.created_at}) });
+      const res = await save(first, edit);
+      if (res.status === 409) return alert('Memori berubah sejak dibuka. Versi terbaru tersedia; tidak ada perubahan disimpan.');
+      if (!res.ok) return alert('Perubahan pertama gagal; item tetap di Review.');
+      const secondEdit = prompt(`Perjelas alasan menyimpan memori #${otherId}:`, second.technical_summary || '');
+      if (!secondEdit || !secondEdit.trim()) return alert('Item pertama sudah disimpan. Item kedua tetap di Review.');
+      const res2 = await save(second, secondEdit);
+      if (!res2.ok) return alert('Item pertama sudah disimpan; item kedua tetap di Review dan perlu ditinjau lagi.');
+      await Promise.all([fetchReview(), fetchMemories()]);
+    }
+
+    async function approveMemory(id) { await fetch('/api/memories/' + id + '/approve', { method: 'POST' }); fetchReview(); fetchMemories(); }
+    async function restoreMemory(id) { await fetch('/api/memories/' + id + '/restore', { method: 'POST' }); fetchTrash(); fetchMemories(); fetchProjects(); }
+    async function purgeMemory(id) { if (!confirm('Hapus permanen memori ini?')) return; const res=await fetch('/api/trash/' + id, { method: 'DELETE' }); const data=await res.json(); if(!res.ok)return alert(data.error||'Permanent deletion failed.'); await fetchTrash(); alert(data.purged ? 'Memory permanently deleted.' : 'No item was deleted.'); }
 
     async function fetchTodos() {
       let url = '/api/state';
@@ -2122,6 +2410,7 @@
 
     // Init
     initTheme();
+    initLanguage();
     fetchProjects();
     fetchMemories();
   </script>

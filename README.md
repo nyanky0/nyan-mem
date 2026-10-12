@@ -9,6 +9,9 @@
 - Dual-perspective technical and layman summaries.
 - Project-scoped memories and work state, plus shared `global` context.
 - SQLite FTS5 full-text search.
+- Review inbox for new memories and exact-text duplicate candidates; merges retain provenance and sources stay restorable in 30-day Trash.
+- Trash restore, permanent delete, and silent 30-day expiry purge.
+- Signal Garden light / Carbon Ledger dark themes; language preference persists in the browser.
 - Local dashboard at `http://127.0.0.1:37788/`.
 - MCP over stdio for legacy/single-client use, and Streamable HTTP for a shared local server.
 - CLI: `node cli.cjs`.
@@ -59,6 +62,9 @@ node --check dashboard.cjs
 node dashboard-server-test.js
 node mcp-http-test.js
 node test-suite.js
+node lifecycle-selfcheck.cjs
+node legacy-migration-selfcheck.cjs
+node ui-render-selfcheck.cjs
 ```
 
 ## Troubleshooting
